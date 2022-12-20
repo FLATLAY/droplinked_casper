@@ -1,0 +1,5 @@
+{
+    "name" : "Nike Shoes",
+    "token_uri" : "The_IPFS_Hash",
+	"checksum" : "SHA256_of_the_IPFS_file"
+}
