@@ -1,5 +1,6 @@
 # Droplinked Contract
 ## Introduction
+In Droplinked Project, we are registering the products on chain and enabling publishers to use register the products to sell it in their native site and gain commission, plus we are doing NFT Gated store front (Droplinked.com) and other valued added NFT solutions. this repository contains the Droplinked casper Contract.
 Droplinked contract implements base functionalities of etherium's erc-1155 standard. This contract implements SFT tokens (Semi Fungible Token), which have both uniquness and value. for example a producer, wants to mint 1M NFTs of a same product (each product has its nft which describes who owns this product); mintin 1M NFT's in standards like ERC-721 (CEP47) is not cost effective (storing 1M ID's and owner address will cost a lot of gas); so instead of minting them one by one, we mint a base token (which has a ID), and hold that id alongside with the number of tokens of this kind that a account owns. 
 
 In this way, we would only store a single token ID (which represents the product), and a single number (which represents how many of this token ID a person owns) for each account. 
