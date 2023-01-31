@@ -34,3 +34,5 @@ Here we explain each method of the contract, and how they are used.
 - [TODO] Publisher : publishers can publish approved requests and send publish requests.
 
 ## Storage Model
+
+[storageModel](!https://github.com/FLATLAY/droplinked_casper/blob/main/ndpc_contract/Storage.jpg?raw=true)
