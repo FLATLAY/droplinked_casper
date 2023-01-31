@@ -36,3 +36,7 @@ Here we explain each method of the contract, and how they are used.
 ## Storage Model
 
 ![storageModel](https://raw.githubusercontent.com/FLATLAY/droplinked_casper/main/ndpc_contract/Storage.jpg)
+
+## Deployment
+
+This contract is deployed on Testnet (casper-test) successfully, here is the contract hash : [96262c285d8a4cdaeeaf6057d0f65ed46b06cabc96bb7bacda7ea845459ae137](https://testnet.cspr.live/contract/96262c285d8a4cdaeeaf6057d0f65ed46b06cabc96bb7bacda7ea845459ae137)
