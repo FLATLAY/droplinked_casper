@@ -37,7 +37,7 @@ pub const ENTRYPOINT_BUY : &str = "buy";
 pub const ENTRYPOINT_PUBLISH_REQUEST : &str = "publish_request";
 pub const ENTRYPOINT_CANCEL_REQUEST : &str = "cancel_request";
 pub const ENTRYPOINT_GET_TOKENS : &str = "get_tokens";
-pub const ENTRYPOINT_GET_TOKEN : &str = "get_tokens";
+pub const ENTRYPOINT_GET_TOKEN : &str = "get_token";
 pub const ENTRYPOINT_INIT : &str = "init";
 
 pub const GROUP_CONSTRUCTOR : &str = "constructor";
