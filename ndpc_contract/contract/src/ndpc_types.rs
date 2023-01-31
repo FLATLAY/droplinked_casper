@@ -8,7 +8,6 @@ extern crate alloc;
 use alloc::{string::{String, ToString}, vec::Vec, borrow::ToOwned, boxed::Box, format};
 use casper_contract::contract_api::runtime::blake2b;
 use casper_types::{account::AccountHash, bytesrepr::{FromBytes, ToBytes, Error}, CLTyped, U256};
-
 const METADATA_HASH_LENGTH: usize = 32;
 pub struct MetadataHash(pub [u8; METADATA_HASH_LENGTH]);
 impl AsStrized for MetadataHash{
@@ -16,25 +15,45 @@ impl AsStrized for MetadataHash{
         base16::encode_lower(&self.0)
     }
 }
-
-//NFTMetadata is the metadata of the NFT, it contains the name, uri and checksum of the uri content
+// This struct is used to store publish requests
+pub struct PublishRequest{ 
+    pub holder_id : u64,
+    pub amount : u64,
+    pub percentage : u8,
+    pub producer : AccountHash,
+    pub publisher : AccountHash,
+}
 pub struct NftMetadata{
     pub name: String,
     pub token_uri: String,
     pub checksum: String,
     pub price : U256
 }
+// A amount and a token_id identifies a NFT
+pub struct NFTHolder {
+    pub remaining_amount : u64,
+    pub amount : u64,
+    pub token_id : u64
+}
+// this struct is used to store the approved NFTs (approved to publish)
+pub struct ApprovedNFT {
+    pub holder_id : u64,
+    pub amount : u64,
+    pub owneraccount : AccountHash,
+    pub publisheraccount : AccountHash,
+    pub token_id : u64,
+    pub percentage : u8
+} //size : 32 + 32 + 8 + 8 + 8 + 1 = 89 bytes
+
+// a simple wrapper for a list of u64 (used to store multiple lists of u64 in the contract)
+pub struct U64list{
+    pub list : Vec<u64>
+}
 
 impl ToBytes for NftMetadata{
     fn to_bytes(&self) -> Result<Vec<u8>, casper_types::bytesrepr::Error> {
         let mut result = alloc::vec::Vec::new();
-        // result.append(&mut self.name.to_bytes()?);
-        // result.append(&mut self.token_uri.to_bytes()?);
-        // result.append(&mut self.checksum.to_bytes()?);
-        // result.append(&mut self.price.to_bytes()?);
-        // format the NftMetadata to a string
         let mut nft_metadata_string = format!("{},{},{},{}", self.name, self.token_uri, self.checksum, self.price);
-        //add it to the result
         result.append(&mut nft_metadata_string.to_bytes()?);
         Ok(result)
     }
@@ -48,6 +67,7 @@ impl ToBytes for NftMetadata{
         self.name.serialized_length() + self.token_uri.serialized_length() + self.checksum.serialized_length() + self.price.serialized_length()
     }
 }
+
 impl CLTyped for NftMetadata{
     fn cl_type() -> casper_types::CLType{
         casper_types::CLType::Any
@@ -65,7 +85,6 @@ impl FromBytes for NftMetadata{
     fn from_vec(bytes: Vec<u8>) -> Result<(Self, Vec<u8>), casper_types::bytesrepr::Error> {
         Self::from_bytes(bytes.as_slice()).map(|(x, remainder)| (x, Vec::from(remainder)))
     }
-
 }
 
 impl NftMetadata{
@@ -82,9 +101,8 @@ impl NftMetadata{
         format!("{},{},{},{}",self.name,self.token_uri,self.checksum,self.price)
     }
     pub fn from_json(json : String , price : U256) -> Result<Self, Error>{
-        //implement from_json using splits
         let split = json.split('\"');
-        //TODO: check len of split
+        //TODO: use another functionality to get the name, token_uri and checksum from the json (this one depends on the index of the split)
         let mut name = String::new();
         let mut token_uri = String::new();
         let mut checksum = String::new();
@@ -100,15 +118,9 @@ impl NftMetadata{
             }
         }
         Ok(NftMetadata::new(name,token_uri,checksum,price))
-        
     }
 }
 
-pub struct NFTHolder {
-    pub remaining_amount : u64,
-    pub amount : u64,
-    pub token_id : u64
-}
 //Implement ToBytes, FromBytes and CLTyped for NFTHolder to be able to store it in the contract's storage and retrieve it
 impl ToBytes for NFTHolder{
     fn to_bytes(&self) -> Result<Vec<u8>, casper_types::bytesrepr::Error> {
@@ -128,6 +140,7 @@ impl ToBytes for NFTHolder{
         self.remaining_amount.serialized_length() + self.amount.serialized_length() + self.token_id.serialized_length()
     }
 }
+
 impl FromBytes for NFTHolder{
     fn from_bytes(bytes: &[u8]) -> Result<(Self, &[u8]), casper_types::bytesrepr::Error> {
         let (remaining_amount, rem) = FromBytes::from_bytes(bytes)?;
@@ -139,11 +152,13 @@ impl FromBytes for NFTHolder{
         Self::from_bytes(bytes.as_slice()).map(|(x, remainder)| (x, Vec::from(remainder)))
     }
 }
+
 impl CLTyped for NFTHolder{
     fn cl_type() -> casper_types::CLType {
         casper_types::CLType::ByteArray(6u32)
     }
 }
+
 impl NFTHolder{
     pub fn new(remaining_amount : u64 , amount : u64 , token_id : u64) -> Self{
         NFTHolder {remaining_amount, amount,token_id}
@@ -152,15 +167,6 @@ impl NFTHolder{
         format!("{{\"remaining_amount\":\"{}\",\"amount\":\"{}\",\"token_id\":\"{}\"}}",self.remaining_amount,self.amount,self.token_id)
     }
 }
-
-pub struct ApprovedNFT {
-    pub holder_id : u64,
-    pub amount : u64,
-    pub owneraccount : AccountHash,
-    pub publisheraccount : AccountHash,
-    pub token_id : u64,
-    pub percentage : u8
-} //size : 32 + 32 + 8 + 8 + 8 + 1 = 89 bytes
 
 impl ToBytes for ApprovedNFT{
     fn to_bytes(&self) -> Result<Vec<u8>, casper_types::bytesrepr::Error> {
@@ -212,10 +218,6 @@ impl ApprovedNFT{
         format!("{{\"holder_id\":\"{}\",\"amount\":\"{}\",\"owneraccount\":\"{}\",\"publisheraccount\":\"{}\",\"token_id\":\"{}\",\"percentage\":\"{}\"}}",self.holder_id,self.amount,self.owneraccount,self.publisheraccount,self.token_id,self.percentage)
     }
 }
-
-pub struct U64list{
-    pub list : Vec<u64>
-}
 impl ToBytes for U64list{
     fn to_bytes(&self) -> Result<Vec<u8>, casper_types::bytesrepr::Error> {
         let mut result = Vec::new();
@@ -259,13 +261,6 @@ impl U64list{
     }
 }
 
-pub struct PublishRequest{ //Producer : AccountHash is the arg of the function
-    pub holder_id : u64,
-    pub amount : u64,
-    pub percentage : u8,
-    pub producer : AccountHash,
-    pub publisher : AccountHash,
-}
 impl ToBytes for PublishRequest{
     fn to_bytes(&self) -> Result<Vec<u8>, casper_types::bytesrepr::Error> {
         let mut result = Vec::new();
@@ -331,7 +326,6 @@ impl from_stringize for AccountHash{
         AccountHash::from_formatted_str(format!("account-hash-{}",string).as_str()).unwrap()
     }
 }
-
 pub trait AsStrized{
     fn as_string(&self) -> String;
 }
