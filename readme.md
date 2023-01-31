@@ -35,4 +35,4 @@ Here we explain each method of the contract, and how they are used.
 
 ## Storage Model
 
-![storageModel](!https://github.com/FLATLAY/droplinked_casper/blob/main/ndpc_contract/Storage.jpg?raw=true)
+![storageModel](https://raw.githubusercontent.com/FLATLAY/droplinked_casper/main/ndpc_contract/Storage.jpg)
