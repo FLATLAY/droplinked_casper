@@ -1,6 +1,9 @@
 # Droplinked Contract
 ## Introduction
 In Droplinked Project, we are registering the products on chain and enabling publishers to use register the products to sell it in their native site and gain commission, plus we are doing NFT Gated store front (Droplinked.com) and other valued added NFT solutions. this repository contains the Droplinked casper Contract.
+
+**Droplinked.com needs to interact with the casper-signer in order to sign the transactions. Interaction with the casper-signer is nessesary for login, minting, buying, publishing and all other actions that require a signature.**
+
 Droplinked contract implements base functionalities of etherium's erc-1155 standard. This contract implements SFT tokens (Semi Fungible Token), which have both uniquness and value. for example a producer, wants to mint 1M NFTs of a same product (each product has its nft which describes who owns this product); mintin 1M NFT's in standards like ERC-721 (CEP47) is not cost effective (storing 1M ID's and owner address will cost a lot of gas); so instead of minting them one by one, we mint a base token (which has a ID), and hold that id alongside with the number of tokens of this kind that a account owns. 
 
 In this way, we would only store a single token ID (which represents the product), and a single number (which represents how many of this token ID a person owns) for each account. 
@@ -41,3 +44,13 @@ Here we explain each method of the contract, and how they are used.
 ## Deployment
 
 This contract is deployed on Testnet (casper-test) successfully, here is the contract hash : [96262c285d8a4cdaeeaf6057d0f65ed46b06cabc96bb7bacda7ea845459ae137](https://testnet.cspr.live/contract/96262c285d8a4cdaeeaf6057d0f65ed46b06cabc96bb7bacda7ea845459ae137)
+
+
+# Project Feautures
+## NFT Gating system
+Producers can set a set of rules in order to sell their tokens. they can limit the buyers to accounts which have bought several other tokens by the producer (Gating), or they can give several discounts.
+
+These rules (ruleset) are checked in Droplinked.com before the customer purchases the token.
+
+## NFT FrontStore
+Droplinked.com provides a frontstore, in wich the producers can upload their NFTs and set their prices and rulesets, and customers can explore the NFTs and buy them.
