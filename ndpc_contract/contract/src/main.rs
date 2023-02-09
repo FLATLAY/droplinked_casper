@@ -1,3 +1,10 @@
+/*
+TODO: Change NDPC contract and add this : whenever a nft is transferred, 
+the contract should check if the token_id that is transferring to dst account 
+is already in another holder_id or not, if it wasn't in any of the dst account's holders, 
+then it should create a new holder_id for it, if it was in another holder_id, then it 
+should just add the amount to the existing holder_id.
+*/
 #![no_std]
 #![no_main]
 mod ndpc_types;
@@ -5,13 +12,14 @@ mod ndpc_utils;
 mod constants;
 #[cfg(not(target_arch = "wasm32"))]
 compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
+
 // We need to explicitly import the std alloc crate and `alloc::string::String` as we're in a
 // `no_std` environment.
 extern crate alloc;
 use core::ops::{Mul, Div, Sub};
 use alloc::{string::{String, ToString}, collections::BTreeSet, vec::Vec};
 use casper_contract::{contract_api::{runtime::{self, get_caller}, storage, system::{get_purse_balance, transfer_from_purse_to_account}}, unwrap_or_revert::UnwrapOrRevert};
-use constants::{get_entrypoints, get_named_keys, ENTRYPOINT_INIT};
+use constants::{get_entrypoints, get_named_keys};
 use ndpc_types::{NFTHolder, ApprovedNFT, U64list,AsStrized, PublishRequest};
 use casper_types::{RuntimeArgs, U256, Key, account::AccountHash, ApiError, URef, U512, ContractPackageHash, CLValue};
 /// An error enum which can be converted to a `u16` so it can be returned as an `ApiError::User`.
@@ -31,10 +39,11 @@ enum Error {
     ApprovedListDoesentExist = 11,
     EmptyOwnerShipList = 12,
     PublisherHasNoApprovedHolders = 13,
-    ProducerHasNoApprovedHolders = 14,
-    EmptyRequestCnt = 15,
-    AccessDenied = 16,
-    EmptyU64List = 17,
+    ProducerHasNoApprovedHolders = 15,
+    EmptyRequestCnt = 17,
+    AccessDenied = 18,
+    EmptyU64List = 19,
+    TotalSupplyNotFound = 20
 }
 impl From<Error> for ApiError {
     fn from(error: Error) -> Self {
@@ -44,9 +53,10 @@ impl From<Error> for ApiError {
 
 #[no_mangle]
 pub extern "C" fn mint(){
+    //!!! ---- important TODO: check if the caller account is in the group of producers ----!!!
     //Get runtime arguments from the caller
     let metadata : String = runtime::get_named_arg(constants::RUNTIME_ARG_METADATA);
-    let price : U256 = runtime::get_named_arg(constants::RUNTIME_ARG_PRICE);
+    let price : U256 = runtime::get_named_arg("price");
     let amount : u64 = runtime::get_named_arg(constants::RUNTIME_ARG_AMOUNT);
     let reciver_key : Key = runtime::get_named_arg(constants::RUNTIME_ARG_RECIPIENT);
     let reciver_acc = reciver_key.into_account().unwrap_or_revert_with(ApiError::from(Error::NotAccountHash));
@@ -104,6 +114,19 @@ pub extern "C" fn mint(){
         owner_holder_ids.list.push(holder_id);
         storage::dictionary_put(owners_dict_uref, reciver.as_str(), owner_holder_ids);
     }
+
+    //update the total supply dict by adding the amount of tokens minted to that token_id
+    let total_supply_uref = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_TOTAL_SUPPLY);
+    let total_supply = storage::dictionary_get(total_supply_uref, _token_id_final.to_string().as_str()).unwrap_or_revert();
+    if total_supply.is_none(){
+        storage::dictionary_put(total_supply_uref, _token_id_final.to_string().as_str(), amount);
+    }
+    else{
+        let mut total_supply : u64 = total_supply.unwrap_or_revert();
+        total_supply = total_supply + amount;
+        storage::dictionary_put(total_supply_uref, _token_id_final.to_string().as_str(), total_supply);
+    }
+
     // return the token_id
     let ret = CLValue::from_t(_token_id_final).unwrap_or_revert();
     runtime::ret(ret);
@@ -111,7 +134,10 @@ pub extern "C" fn mint(){
 
 #[no_mangle]
 pub extern "C" fn approve(){
-    // check if the approved_id does not exist in the list of approved_ids of publisher and producer    
+    //!!! ---- important TODO: check if the caller account is in the group of producers ----!!!
+    //!!! ---- important TODO: check if spender account is in publishers list ----!!!
+    // check if the approved_id does not exist in the list of approved_ids of publisher and producer
+    
     let requests_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_REQ_OBJ);
     let prod_reqs_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_PROD_REQS);
     let pub_reqs_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_PUB_REQS);
@@ -438,9 +464,11 @@ pub extern "C" fn get_tokens(){
     let owners_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_OWNERS_NAME);
     let holders_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_HOLDERS_NAME);
     let metadatas_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_METADATAS_NAME);
+
     let owners_list = storage::dictionary_get::<U64list>(owners_dict, owner.as_str())
         .unwrap_or_revert()
         .unwrap_or_revert_with(ApiError::from(Error::EmptyOwnerShipList));
+    
         let mut description = String::from("");
     for holder_id in owners_list.list{
         description+= "[";
@@ -466,8 +494,10 @@ pub extern "C" fn get_token(){
     runtime::ret(ret);
 }
 
+// PublishRequest
 #[no_mangle]
 pub extern "C" fn publish_request(){
+    //TODO: check if caller is a publisher or not
     //storages we need to work with
     let holders_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_HOLDERS_NAME);
     let owners_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_OWNERS_NAME);
@@ -550,6 +580,7 @@ pub extern "C" fn cancel_request(){
     if request_obj.publisher != get_caller(){
         runtime::revert(ApiError::from(Error::AccessDenied));
     }
+
     //remove the request_id from the publisher's requests and from the producer's requests
     let mut pub_reqs = storage::dictionary_get::<U64list>(pub_reqs_dict, request_obj.publisher.as_string().as_str())
         .unwrap_or_revert()
@@ -565,6 +596,15 @@ pub extern "C" fn cancel_request(){
 }
 
 #[no_mangle]
+pub extern "C" fn get_total_supply(){
+    // use constants::NAMED_KEY_DICT_TOTAL_SUPPLY to get the total supply of given token_id
+    let token_id : String = runtime::get_named_arg(constants::RUNTIME_ARG_TOKEN_ID);
+    let total_supply_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_TOTAL_SUPPLY);
+    let total_supply : u64 = storage::dictionary_get(total_supply_dict, token_id.as_str()).unwrap_or_revert().unwrap_or_revert_with(ApiError::from(Error::TotalSupplyNotFound));
+    let ret = CLValue::from_t(total_supply).unwrap_or_revert();
+}
+
+#[no_mangle]
 pub extern "C" fn init(){
     storage::new_dictionary(constants::NAMED_KEY_DICT_APPROVED_NAME).unwrap_or_revert();
     storage::new_dictionary(constants::NAMED_KEY_DICT_HOLDERS_NAME).unwrap_or_revert();
@@ -577,25 +617,20 @@ pub extern "C" fn init(){
     storage::new_dictionary(constants::NAMED_KEY_DICT_PROD_REQS).unwrap_or_revert();
     storage::new_dictionary(constants::NAMED_KEY_DICT_PUB_REQS).unwrap_or_revert();
     storage::new_dictionary(constants::NAMED_KEY_DICT_PUB_REJS).unwrap_or_revert();
+    storage::new_dictionary(constants::NAMED_KEY_DICT_TOTAL_SUPPLY).unwrap_or_revert();
 }
+
 fn install_contract(){
-    // Install the contract
-    // Get the entry points and named keys
     let entry_points = get_entrypoints();
     let named_keys = get_named_keys();
-    // Create the contract
-    let (contract_hash , _contract_version) = storage::new_contract(entry_points, Some(named_keys) , Some(constants::PACKAGE_HASH_NAME.to_string()), None);
-    // Create the constructor access uref
-    let package_hash = ContractPackageHash::new(runtime::get_key(constants::PACKAGE_HASH_NAME).unwrap_or_revert().into_hash().unwrap_or_revert());
-    let constructor_access: URef = storage::create_contract_user_group(package_hash, constants::GROUP_CONSTRUCTOR, 1, Default::default()).unwrap_or_revert().pop().unwrap_or_revert();
-    // Call the contract's init function to initialize the contract's dictionaries
-    let _: () = runtime::call_contract(contract_hash, ENTRYPOINT_INIT, RuntimeArgs::new());
-    // Remove the constructor access uref
+    let (contract_hash , _contract_version) = storage::new_contract(entry_points, Some(named_keys) , Some("droplink_package_hash".to_string()), None);
+    let package_hash = ContractPackageHash::new(runtime::get_key("droplink_package_hash").unwrap_or_revert().into_hash().unwrap_or_revert());
+    let constructor_access: URef = storage::create_contract_user_group(package_hash, "constructor", 1, Default::default()).unwrap_or_revert().pop().unwrap_or_revert();
+    let _: () = runtime::call_contract(contract_hash, "init", RuntimeArgs::new());
     let mut urefs = BTreeSet::new();
     urefs.insert(constructor_access);
-    storage::remove_contract_user_group_urefs(package_hash, constants::GROUP_CONSTRUCTOR, urefs).unwrap_or_revert();
-    // Put the contract hash in the installer's named keys
-    runtime::put_key(constants::CONTRACT_NAME, contract_hash.into());
+    storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs).unwrap_or_revert();
+    runtime::put_key("droplink_contract", contract_hash.into());
 }
 
 #[no_mangle]
