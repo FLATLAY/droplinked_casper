@@ -101,15 +101,15 @@ pub extern "C" fn mint(){
     //Create an NFTHolder object for the reciver
     let nft_holder = NFTHolder::new(amount, amount, _token_id_final);
     let holders_cnt : u64 = storage::read(holders_cnt_uref).unwrap_or_revert().unwrap_or_revert();
-    let holder_id : u64 = holders_cnt+ 1u64;
-    storage::write(holders_cnt_uref, holder_id);
-    storage::dictionary_put(nft_holder_by_id_dict_uref, holder_id.to_string().as_str(), nft_holder);    
-
+    
     let owner_holder_ids = storage::dictionary_get(owners_dict_uref, reciver.as_str()).unwrap_or_revert();
     //create the list if it did not exist
     if owner_holder_ids.is_none(){
         let mut new_list = ndpc_types::U64list::new();
-        new_list.list.push(holder_id);
+        new_list.list.push((holders_cnt+ 1u64));
+        let holderid : u64 = holders_cnt+ 1u64;
+        storage::write(holders_cnt_uref, holderid);
+        storage::dictionary_put(nft_holder_by_id_dict_uref, holderid.to_string().as_str(), nft_holder);    
         storage::dictionary_put(owners_dict_uref, reciver.as_str(), new_list);
     }
     else{
@@ -133,7 +133,10 @@ pub extern "C" fn mint(){
             }
         }
         if (!existed){
-            owner_holder_ids.list.push(holder_id);
+            let holderid : u64 = holders_cnt+ 1u64;
+            storage::write(holders_cnt_uref, holderid);
+            storage::dictionary_put(nft_holder_by_id_dict_uref, holderid.to_string().as_str(), nft_holder);    
+            owner_holder_ids.list.push(holderid);
             storage::dictionary_put(owners_dict_uref, reciver.as_str(), owner_holder_ids);
         }
     }
