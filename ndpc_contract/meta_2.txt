@@ -1,5 +1,0 @@
-{
-    "name" : "name1",
-    "token_uri" : "test1_uri",
-	"checksum" : "test1_sum"
-}

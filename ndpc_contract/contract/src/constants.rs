@@ -90,6 +90,7 @@ pub fn get_entrypoints() -> EntryPoints{
     result.add_entry_point(entry_point_init);
     result.add_entry_point(entry_point_publish_request);
     result.add_entry_point(entry_point_cancel_request);
+    result.add_entry_point(entry_point_get_total_supply);
     result
 }
 

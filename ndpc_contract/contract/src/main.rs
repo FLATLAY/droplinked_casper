@@ -43,7 +43,10 @@ enum Error {
     EmptyRequestCnt = 17,
     AccessDenied = 18,
     EmptyU64List = 19,
-    TotalSupplyNotFound = 20
+    TotalSupplyNotFound = 20,
+    MintHolderNotFound = 21,
+    MintTokenAlreadyExists = 22
+
 }
 impl From<Error> for ApiError {
     fn from(error: Error) -> Self {
@@ -94,14 +97,14 @@ pub extern "C" fn mint(){
     }
     //add the token_id generated (or retrieved) to the metadatas dictioanary (with the actual metadata)
     storage::dictionary_put(metadata_by_token_id_uref, _token_id_final.to_string().as_str(), generated_metadata.to_string());
+    
     //Create an NFTHolder object for the reciver
     let nft_holder = NFTHolder::new(amount, amount, _token_id_final);
-    
     let holders_cnt : u64 = storage::read(holders_cnt_uref).unwrap_or_revert().unwrap_or_revert();
     let holder_id : u64 = holders_cnt+ 1u64;
     storage::write(holders_cnt_uref, holder_id);
     storage::dictionary_put(nft_holder_by_id_dict_uref, holder_id.to_string().as_str(), nft_holder);    
-    
+
     let owner_holder_ids = storage::dictionary_get(owners_dict_uref, reciver.as_str()).unwrap_or_revert();
     //create the list if it did not exist
     if owner_holder_ids.is_none(){
@@ -110,9 +113,29 @@ pub extern "C" fn mint(){
         storage::dictionary_put(owners_dict_uref, reciver.as_str(), new_list);
     }
     else{
+        // check if the _final_token_id is already in the holder's list's token_id
         let mut owner_holder_ids : ndpc_types::U64list = owner_holder_ids.unwrap_or_revert();
-        owner_holder_ids.list.push(holder_id);
-        storage::dictionary_put(owners_dict_uref, reciver.as_str(), owner_holder_ids);
+        // grab each holder from storage and check it's token_id
+        let mut existed = false;
+        for holder_id in owner_holder_ids.list.iter(){
+            let holder = storage::dictionary_get(nft_holder_by_id_dict_uref, holder_id.to_string().as_str()).unwrap_or_revert();
+            if holder.is_none(){
+                runtime::revert(ApiError::from(Error::MintHolderNotFound));
+            }
+            let mut holder : NFTHolder = holder.unwrap_or_revert();
+            if holder.token_id == _token_id_final{
+                // add the amount to the existing holder
+                holder.amount = holder.amount + amount;
+                holder.remaining_amount = holder.remaining_amount + amount;
+                storage::dictionary_put(nft_holder_by_id_dict_uref, holder_id.to_string().as_str(), holder);
+                existed = true;
+                break;
+            }
+        }
+        if (!existed){
+            owner_holder_ids.list.push(holder_id);
+            storage::dictionary_put(owners_dict_uref, reciver.as_str(), owner_holder_ids);
+        }
     }
 
     //update the total supply dict by adding the amount of tokens minted to that token_id
