@@ -32,6 +32,8 @@ pub const RUNTIME_ARG_COMISSION : &str = "comission";
 pub const RUNTIME_ARG_PRODUCER_ACCOUNT_HASH : &str = "producer-account";
 pub const RUNTIME_ARG_REQUEST_ID : &str = "request_id";
 
+pub const CONTRACTPACKAGEHASH : &str = "droplink_package_hash";
+
 pub fn get_entrypoints() -> EntryPoints{
     let mut result =EntryPoints::new();
 

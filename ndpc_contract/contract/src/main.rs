@@ -7,9 +7,10 @@ should just add the amount to the existing holder_id.
 */
 #![no_std]
 #![no_main]
-mod ndpc_types;
+pub mod ndpc_types;
 mod ndpc_utils;
 mod constants;
+mod event;
 #[cfg(not(target_arch = "wasm32"))]
 compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
 
@@ -18,10 +19,11 @@ compile_error!("target arch should be wasm32: compile with '--target wasm32-unkn
 extern crate alloc;
 use core::ops::{Mul, Div, Sub};
 use alloc::{string::{String, ToString}, collections::BTreeSet, vec::Vec};
-use casper_contract::{contract_api::{runtime::{self, get_caller}, storage, system::{get_purse_balance, transfer_from_purse_to_account}}, unwrap_or_revert::UnwrapOrRevert};
+use casper_contract::{contract_api::{runtime::{self, get_caller, get_call_stack}, storage, system::{get_purse_balance, transfer_from_purse_to_account}}, unwrap_or_revert::UnwrapOrRevert};
 use constants::{get_entrypoints, get_named_keys};
+use event::DropLinkedEvent;
 use ndpc_types::{NFTHolder, ApprovedNFT, U64list,AsStrized, PublishRequest};
-use casper_types::{RuntimeArgs, U256, Key, account::AccountHash, ApiError, URef, U512, ContractPackageHash, CLValue};
+use casper_types::{RuntimeArgs, U256, Key, account::AccountHash, ApiError, URef, U512, ContractPackageHash, CLValue, system::CallStackElement};
 /// An error enum which can be converted to a `u16` so it can be returned as an `ApiError::User`.
 #[repr(u16)]
 enum Error {
@@ -101,13 +103,14 @@ pub extern "C" fn mint(){
     //Create an NFTHolder object for the reciver
     let nft_holder = NFTHolder::new(amount, amount, _token_id_final);
     let holders_cnt : u64 = storage::read(holders_cnt_uref).unwrap_or_revert().unwrap_or_revert();
-    
+    let mut holder_id_final : u64 = 0;
     let owner_holder_ids = storage::dictionary_get(owners_dict_uref, reciver.as_str()).unwrap_or_revert();
     //create the list if it did not exist
     if owner_holder_ids.is_none(){
         let mut new_list = ndpc_types::U64list::new();
         new_list.list.push((holders_cnt+ 1u64));
         let holderid : u64 = holders_cnt+ 1u64;
+        holder_id_final = holderid;
         storage::write(holders_cnt_uref, holderid);
         storage::dictionary_put(nft_holder_by_id_dict_uref, holderid.to_string().as_str(), nft_holder);    
         storage::dictionary_put(owners_dict_uref, reciver.as_str(), new_list);
@@ -134,6 +137,7 @@ pub extern "C" fn mint(){
         }
         if (!existed){
             let holderid : u64 = holders_cnt+ 1u64;
+            holder_id_final = holderid;
             storage::write(holders_cnt_uref, holderid);
             storage::dictionary_put(nft_holder_by_id_dict_uref, holderid.to_string().as_str(), nft_holder);    
             owner_holder_ids.list.push(holderid);
@@ -155,6 +159,7 @@ pub extern "C" fn mint(){
 
     // return the token_id
     let ret = CLValue::from_t(_token_id_final).unwrap_or_revert();
+    emit(DropLinkedEvent::Mint { recipient: reciver_acc, token_id: _token_id_final, holder_id: holder_id_final, amount});
     runtime::ret(ret);
 }
 
@@ -267,6 +272,7 @@ pub extern "C" fn approve(){
 
     //return the approved_id
     let ret = CLValue::from_t(approved_id).unwrap_or_revert();
+    emit(DropLinkedEvent::ApprovedPublish { request_id, approved_id });
     runtime::ret(ret);
 }
 
@@ -333,6 +339,7 @@ pub extern "C" fn disapprove(){
     holder.remaining_amount += amount;
     //put back holder to the dictionary
     storage::dictionary_put(holders_dict, holder_id.to_string().as_str(), holder);
+    emit(DropLinkedEvent::DisapprovedPublish {  approved_id });
 }
 
 #[no_mangle]
@@ -464,6 +471,7 @@ pub extern "C" fn buy(){
         //update caller's tokens
         storage::dictionary_put(owners_dict, &caller_string, caller_tokens);
     }
+    emit(DropLinkedEvent::Buy { amount, approved_id, buyer: get_caller()});
 }
 
 fn get_nft_metadata(token_id : String , metadatas_dict : URef) -> ndpc_types::NftMetadata{
@@ -586,6 +594,7 @@ pub extern "C" fn publish_request(){
     storage::dictionary_put(pub_reqs_dict, caller.as_str(), pub_reqs);
 
     let ret = CLValue::from_t(request_id).unwrap_or_revert();
+    emit(DropLinkedEvent::PublishRequest { owner: producer_account_hash, publisher: get_caller(), amount, holder_id, request_id });
     runtime::ret(ret);
 }
 
@@ -619,6 +628,7 @@ pub extern "C" fn cancel_request(){
     prod_reqs.remove(request_id);
     storage::dictionary_put(pub_reqs_dict, caller.as_str(), pub_reqs);
     storage::dictionary_put(prod_reqs_dict, request_obj.producer.as_string().as_str(), prod_reqs);
+    emit(DropLinkedEvent::CancelRequest { request_id });
 }
 
 #[no_mangle]
@@ -628,6 +638,81 @@ pub extern "C" fn get_total_supply(){
     let total_supply_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_TOTAL_SUPPLY);
     let total_supply : u64 = storage::dictionary_get(total_supply_dict, token_id.as_str()).unwrap_or_revert().unwrap_or_revert_with(ApiError::from(Error::TotalSupplyNotFound));
     let ret = CLValue::from_t(total_supply).unwrap_or_revert();
+}
+
+pub fn contract_package_hash() -> ContractPackageHash {
+    let call_stacks = get_call_stack();
+    let last_entry = call_stacks.last().unwrap_or_revert();
+    let package_hash: Option<ContractPackageHash> = match last_entry {
+        CallStackElement::StoredContract {
+            contract_package_hash,
+            contract_hash: _,
+        } => Some(*contract_package_hash),
+        _ => None,
+    };
+    package_hash.unwrap_or_revert()
+}
+
+fn emit(event: DropLinkedEvent) {
+    let mut events = Vec::new();
+    let package = contract_package_hash();
+    match event {
+        DropLinkedEvent::Mint { recipient, token_id, holder_id, amount } => {
+            let mut param = alloc::collections::BTreeMap::new();
+            param.insert(constants::CONTRACTPACKAGEHASH, package.to_string());
+            param.insert("event_type", "droplinked_mint".to_string());
+            param.insert("recipient", recipient.to_string());
+            param.insert("token_id", token_id.to_string());
+            param.insert("holder_id", holder_id.to_string());
+            param.insert("amount", amount.to_string());
+            events.push(param);
+        },
+        DropLinkedEvent::PublishRequest { owner, publisher, amount, holder_id, request_id } => {
+            let mut param = alloc::collections::BTreeMap::new();
+            param.insert(constants::CONTRACTPACKAGEHASH, package.to_string());
+            param.insert("event_type", "droplinked_publish_request".to_string());
+            param.insert("owner", owner.to_string());
+            param.insert("publisher", publisher.to_string());
+            param.insert("amount", amount.to_string());
+            param.insert("holder_id", holder_id.to_string());
+            param.insert("request_id", request_id.to_string());
+            events.push(param);
+        },
+        DropLinkedEvent::DisapprovedPublish { approved_id } => {
+            let mut param = alloc::collections::BTreeMap::new();
+            param.insert(constants::CONTRACTPACKAGEHASH, package.to_string());
+            param.insert("event_type", "droplinked_disapproved_publish".to_string());
+            param.insert("approved_id", approved_id.to_string());
+            events.push(param);
+        },
+        DropLinkedEvent::CancelRequest { request_id } => {
+            let mut param = alloc::collections::BTreeMap::new();
+            param.insert(constants::CONTRACTPACKAGEHASH, package.to_string());
+            param.insert("event_type", "droplinked_cancel_request".to_string());
+            param.insert("request_id", request_id.to_string());
+            events.push(param);
+        },
+        DropLinkedEvent::ApprovedPublish { request_id, approved_id } => {
+            let mut param = alloc::collections::BTreeMap::new();
+            param.insert(constants::CONTRACTPACKAGEHASH, package.to_string());
+            param.insert("event_type", "droplinked_approved_publish".to_string());
+            param.insert("request_id", request_id.to_string());
+            param.insert("approved_id", approved_id.to_string());
+            events.push(param);
+        },
+        DropLinkedEvent::Buy { amount, approved_id, buyer } => {
+            let mut param = alloc::collections::BTreeMap::new();
+            param.insert(constants::CONTRACTPACKAGEHASH, package.to_string());
+            param.insert("event_type", "droplinked_buy".to_string());
+            param.insert("amount", amount.to_string());
+            param.insert("approved_id", approved_id.to_string());
+            param.insert("buyer", buyer.to_string());
+            events.push(param);
+        }
+    }
+    for param in events{
+        let _:URef = storage::new_uref(param);
+    }
 }
 
 #[no_mangle]
@@ -649,8 +734,8 @@ pub extern "C" fn init(){
 fn install_contract(){
     let entry_points = get_entrypoints();
     let named_keys = get_named_keys();
-    let (contract_hash , _contract_version) = storage::new_contract(entry_points, Some(named_keys) , Some("droplink_package_hash".to_string()), None);
-    let package_hash = ContractPackageHash::new(runtime::get_key("droplink_package_hash").unwrap_or_revert().into_hash().unwrap_or_revert());
+    let (contract_hash , _contract_version) = storage::new_contract(entry_points, Some(named_keys) , Some(constants::CONTRACTPACKAGEHASH.to_string()), None);
+    let package_hash = ContractPackageHash::new(runtime::get_key(constants::CONTRACTPACKAGEHASH).unwrap_or_revert().into_hash().unwrap_or_revert());
     let constructor_access: URef = storage::create_contract_user_group(package_hash, "constructor", 1, Default::default()).unwrap_or_revert().pop().unwrap_or_revert();
     let _: () = runtime::call_contract(contract_hash, "init", RuntimeArgs::new());
     let mut urefs = BTreeSet::new();

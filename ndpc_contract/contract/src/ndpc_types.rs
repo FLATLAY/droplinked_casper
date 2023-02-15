@@ -6,7 +6,7 @@
 
 extern crate alloc;
 use alloc::{string::{String, ToString}, vec::Vec, borrow::ToOwned, boxed::Box, format};
-use casper_contract::contract_api::runtime::blake2b;
+use casper_contract::contract_api::{runtime::blake2b, storage};
 use casper_types::{account::AccountHash, bytesrepr::{FromBytes, ToBytes, Error}, CLTyped, U256};
 const METADATA_HASH_LENGTH: usize = 32;
 pub struct MetadataHash(pub [u8; METADATA_HASH_LENGTH]);
@@ -35,6 +35,7 @@ pub struct NFTHolder {
     pub amount : u64,
     pub token_id : u64
 }
+
 // this struct is used to store the approved NFTs (approved to publish)
 pub struct ApprovedNFT {
     pub holder_id : u64,
