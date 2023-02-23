@@ -754,7 +754,4 @@ fn install_contract(){
 #[no_mangle]
 pub extern "C" fn call() {
     install_contract();
-
-    
-
 }

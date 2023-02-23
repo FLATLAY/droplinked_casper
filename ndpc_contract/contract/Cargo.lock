@@ -131,6 +131,8 @@ dependencies = [
  "base16",
  "casper-contract",
  "casper-types",
+ "ed25519 2.0.1",
+ "ed25519-dalek",
  "secp256k1",
  "serde",
  "serde_json",
@@ -201,7 +203,7 @@ checksum = "41fbdb4ff710acb4db8ca29f93b897529ea6d6a45626d5183b47e012aa6ae7e4"
 dependencies = [
  "elliptic-curve",
  "hmac",
- "signature",
+ "signature 1.2.2",
 ]
 
 [[package]]
@@ -210,7 +212,16 @@ version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4620d40f6d2601794401d6dd95a5cf69b6c157852539470eeda433a99b3c0efc"
 dependencies = [
- "signature",
+ "signature 1.2.2",
+]
+
+[[package]]
+name = "ed25519"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b313941b79fa8f26c1967e351fa7f48a144e2dbeadb6a6fe0ccdfd61ef8ad600"
+dependencies = [
+ "signature 2.0.0",
 ]
 
 [[package]]
@@ -220,7 +231,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c762bae6dcaf24c4c84667b8579785430908723d5c889f469d76a41d59cc7a9d"
 dependencies = [
  "curve25519-dalek",
- "ed25519",
+ "ed25519 1.2.0",
  "rand 0.7.3",
  "sha2",
  "zeroize",
@@ -594,6 +605,12 @@ dependencies = [
  "digest",
  "rand_core 0.5.1",
 ]
+
+[[package]]
+name = "signature"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8fe458c98333f9c8152221191a77e2a44e8325d0193484af2e9421a53019e57d"
 
 [[package]]
 name = "static_assertions"
