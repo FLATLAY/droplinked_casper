@@ -11,19 +11,23 @@ pub mod ndpc_types;
 mod ndpc_utils;
 mod constants;
 mod event;
+
 #[cfg(not(target_arch = "wasm32"))]
 compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
 
 // We need to explicitly import the std alloc crate and `alloc::string::String` as we're in a
 // `no_std` environment.
 extern crate alloc;
-use core::ops::{Mul, Div, Sub};
-use alloc::{string::{String, ToString}, collections::BTreeSet, vec::Vec};
+use core::{ops::{Mul, Div, Sub}, convert::TryInto};
+use alloc::{string::{String, ToString}, collections::BTreeSet, vec::Vec, borrow::ToOwned};
 use casper_contract::{contract_api::{runtime::{self, get_caller, get_call_stack}, storage, system::{get_purse_balance, transfer_from_purse_to_account}}, unwrap_or_revert::UnwrapOrRevert};
 use constants::{get_entrypoints, get_named_keys};
 use event::DropLinkedEvent;
 use ndpc_types::{NFTHolder, ApprovedNFT, U64list,AsStrized, PublishRequest};
-use casper_types::{RuntimeArgs, U256, Key, account::AccountHash, ApiError, URef, U512, ContractPackageHash, CLValue, system::CallStackElement};
+use casper_types::{RuntimeArgs, U256, Key, account::AccountHash, ApiError, URef, U512, ContractPackageHash, CLValue, system::CallStackElement, Signature};
+use secp256k1::{Secp256k1, Message, SecretKey, PublicKey, hashes::{hex, sha256}};
+
+
 /// An error enum which can be converted to a `u16` so it can be returned as an `ApiError::User`.
 #[repr(u16)]
 enum Error {
@@ -81,6 +85,8 @@ pub extern "C" fn mint(){
     let holders_cnt_uref = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_HOLDERSCNT);
     let owners_dict_uref = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_OWNERS_NAME);
     let tokens_cnt_uref = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_TOKENSCNT);
+    
+    
 
     let mut _token_id_final : u64 = 0u64;
     let _token_id : u64 = 0u64;
@@ -729,6 +735,7 @@ pub extern "C" fn init(){
     storage::new_dictionary(constants::NAMED_KEY_DICT_PUB_REQS).unwrap_or_revert();
     storage::new_dictionary(constants::NAMED_KEY_DICT_PUB_REJS).unwrap_or_revert();
     storage::new_dictionary(constants::NAMED_KEY_DICT_TOTAL_SUPPLY).unwrap_or_revert();
+
 }
 
 fn install_contract(){
@@ -747,4 +754,7 @@ fn install_contract(){
 #[no_mangle]
 pub extern "C" fn call() {
     install_contract();
+
+    
+
 }

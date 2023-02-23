@@ -9,6 +9,7 @@ use alloc::{string::{String, ToString}, vec::Vec, borrow::ToOwned, boxed::Box, f
 use casper_contract::contract_api::{runtime::blake2b, storage};
 use casper_types::{account::AccountHash, bytesrepr::{FromBytes, ToBytes, Error}, CLTyped, U256};
 const METADATA_HASH_LENGTH: usize = 32;
+
 pub struct MetadataHash(pub [u8; METADATA_HASH_LENGTH]);
 impl AsStrized for MetadataHash{
     fn as_string(&self) -> String{

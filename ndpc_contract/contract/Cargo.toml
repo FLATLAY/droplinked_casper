@@ -9,6 +9,7 @@ casper-types = "1.5.0"
 base16 = { version = "0.2", default-features = false, features = ["alloc"] }
 serde = { version = "1", features = ["derive", "alloc"], default-features = false }
 serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+secp256k1 = { version = "0.26.0", default-features = false, features = ["alloc","bitcoin-hashes","rand","recovery"] }
 
 [[bin]]
 name = "contract"
