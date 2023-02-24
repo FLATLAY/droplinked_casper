@@ -1,6 +1,6 @@
 use alloc::{string::ToString, vec};
 use casper_contract::contract_api::storage;
-use casper_types::{EntryPoint, EntryPoints, contracts::{Parameters, NamedKeys}, Parameter, system::auction::ARG_AMOUNT, Group};
+use casper_types::{EntryPoint, EntryPoints, contracts::{Parameters, NamedKeys}, Parameter, system::auction::ARG_AMOUNT, Group, PublicKey};
 
 pub const NAMED_KEY_DICT_APPROVED_NAME: &str = "approved";
 pub const NAMED_KEY_DICT_HOLDERS_NAME: &str = "holders";
@@ -19,7 +19,8 @@ pub const NAMED_KEY_DICT_PROD_REQS : &str = "producer_requests";
 pub const NAMED_KEY_DICT_PUB_REQS : &str = "publiser_requests";
 pub const NAMED_KEY_DICT_PUB_REJS : &str = "publisher_rejects";
 pub const NAMED_KEY_DICT_TOTAL_SUPPLY : &str = "total_supply";
-
+pub const NAMED_KEY_LATEST_TIMESTAMP : &str = "latest_timestamp";
+pub const NAMED_KEY_RATIO_VERIFIER : &str = "ratio_verifier";
 
 pub const RUNTIME_ARG_METADATA : &str = "metadata";
 pub const RUNTIME_ARG_AMOUNT : &str = "amount";
@@ -31,6 +32,9 @@ pub const RUNTIME_ARG_TOKEN_ID : &str = "token_id";
 pub const RUNTIME_ARG_COMISSION : &str = "comission";
 pub const RUNTIME_ARG_PRODUCER_ACCOUNT_HASH : &str = "producer-account";
 pub const RUNTIME_ARG_REQUEST_ID : &str = "request_id";
+pub const RUNTIME_ARG_CURRENT_PRICE_TIMESTAMP : &str = "current_price_timestamp";
+pub const RUNTIME_ARG_SIGNATURE : &str = "signature";
+
 
 pub const CONTRACTPACKAGEHASH : &str = "droplink_package_hash";
 
@@ -96,11 +100,13 @@ pub fn get_entrypoints() -> EntryPoints{
     result
 }
 
-pub fn get_named_keys() -> alloc::collections::BTreeMap<alloc::string::String, casper_types::Key>{
+pub fn get_named_keys(time_stamp : u64, ratio_verifier : PublicKey) -> alloc::collections::BTreeMap<alloc::string::String, casper_types::Key>{
     let mut named_keys : NamedKeys = NamedKeys::new();
     named_keys.insert(NAMED_KEY_APPROVED_CNT.to_string(), storage::new_uref(0u64).into());
     named_keys.insert(NAMED_KEY_HOLDERSCNT.to_string(), storage::new_uref(0u64).into());
     named_keys.insert(NAMED_KEY_TOKENSCNT.to_string(), storage::new_uref(0u64).into());
     named_keys.insert(NAMED_KEY_REQ_CNT.to_string(), storage::new_uref(0u64).into());
+    named_keys.insert(NAMED_KEY_LATEST_TIMESTAMP.to_string(), storage::new_uref(time_stamp).into());
+    named_keys.insert(NAMED_KEY_RATIO_VERIFIER.to_string(), storage::new_uref(ratio_verifier).into());
     named_keys
 }

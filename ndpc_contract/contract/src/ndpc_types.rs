@@ -310,7 +310,7 @@ impl PublishRequest{
         format!("{},{},{},{},{}",self.holder_id,self.amount,self.percentage,self.producer,self.publisher)
     }
     pub fn from_string(string : String) -> Self{
-        let mut split = string.split(",");
+        let mut split = string.split(',');
         let holder_id = split.next().unwrap().parse::<u64>().unwrap();
         let amount = split.next().unwrap().parse::<u64>().unwrap();
         let percentage = split.next().unwrap().parse::<u8>().unwrap();

@@ -18,13 +18,14 @@ compile_error!("target arch should be wasm32: compile with '--target wasm32-unkn
 // We need to explicitly import the std alloc crate and `alloc::string::String` as we're in a
 // `no_std` environment.
 extern crate alloc;
-use core::{ops::{Mul, Div, Sub}, convert::TryInto};
+use core::{ops::{Mul, Div, Sub, MulAssign}, convert::TryInto};
 use alloc::{string::{String, ToString}, collections::BTreeSet, vec::Vec, borrow::ToOwned};
-use casper_contract::{contract_api::{runtime::{self, get_caller, get_call_stack}, storage, system::{get_purse_balance, transfer_from_purse_to_account}}, unwrap_or_revert::UnwrapOrRevert};
+use casper_contract::{contract_api::{runtime::{self, get_caller, get_call_stack, revert}, storage, system::{get_purse_balance, transfer_from_purse_to_account}}, unwrap_or_revert::UnwrapOrRevert};
 use constants::{get_entrypoints, get_named_keys};
 use event::DropLinkedEvent;
 use ndpc_types::{NFTHolder, ApprovedNFT, U64list,AsStrized, PublishRequest};
 use casper_types::{RuntimeArgs, U256, Key, account::AccountHash, ApiError, URef, U512, ContractPackageHash, CLValue, system::CallStackElement, Signature};
+use ndpc_utils::{get_ratio_verifier, verify_signature, get_latest_timestamp, set_latest_timestamp};
 use secp256k1::{Secp256k1, Message, SecretKey, PublicKey, hashes::{hex, sha256}};
 
 
@@ -51,8 +52,9 @@ enum Error {
     EmptyU64List = 19,
     TotalSupplyNotFound = 20,
     MintHolderNotFound = 21,
-    MintTokenAlreadyExists = 22
-
+    MintTokenAlreadyExists = 22,
+    InvalidSignature = 23,
+    InvalidTimestamp = 24,
 }
 impl From<Error> for ApiError {
     fn from(error: Error) -> Self {
@@ -134,8 +136,8 @@ pub extern "C" fn mint(){
             let mut holder : NFTHolder = holder.unwrap_or_revert();
             if holder.token_id == _token_id_final{
                 // add the amount to the existing holder
-                holder.amount = holder.amount + amount;
-                holder.remaining_amount = holder.remaining_amount + amount;
+                holder.amount += amount;
+                holder.remaining_amount += amount;
                 storage::dictionary_put(nft_holder_by_id_dict_uref, holder_id.to_string().as_str(), holder);
                 existed = true;
                 break;
@@ -159,7 +161,7 @@ pub extern "C" fn mint(){
     }
     else{
         let mut total_supply : u64 = total_supply.unwrap_or_revert();
-        total_supply = total_supply + amount;
+        total_supply += amount;
         storage::dictionary_put(total_supply_uref, _token_id_final.to_string().as_str(), total_supply);
     }
 
@@ -350,6 +352,10 @@ pub extern "C" fn disapprove(){
 
 #[no_mangle]
 pub extern "C" fn buy(){
+    let ratio_verifier = get_ratio_verifier();
+    let mp = runtime::get_named_arg::<String>(constants::RUNTIME_ARG_CURRENT_PRICE_TIMESTAMP);
+    let sig = runtime::get_named_arg(constants::RUNTIME_ARG_SIGNATURE);
+
     let approved_id : u64 = runtime::get_named_arg(constants::RUNTIME_ARG_APPROVED_ID);
     let amount : u64 = runtime::get_named_arg(constants::RUNTIME_ARG_AMOUNT);
     //get purse from runtime args
@@ -357,6 +363,19 @@ pub extern "C" fn buy(){
         let purse_key : Key = runtime::get_named_arg("purse_addr");
         purse_key.into_uref().unwrap_or_revert()
     };
+
+    if !verify_signature(ratio_verifier, sig, mp.clone()){
+        revert(ApiError::from(Error::InvalidSignature));
+    }
+    let m_price = mp.split(',').collect::<Vec<&str>>();
+    let price_rat = m_price[0].parse::<u64>().unwrap();
+    let current_timestamp = m_price[1].parse::<u64>().unwrap();
+    let latest_timestamp = get_latest_timestamp();
+    if current_timestamp <= latest_timestamp{
+        revert(ApiError::from(Error::InvalidTimestamp));
+    }
+    set_latest_timestamp(current_timestamp);
+
     //define storages we need to work with
     let owners_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_OWNERS_NAME);
     let approved_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_APPROVED_NAME);
@@ -384,8 +403,8 @@ pub extern "C" fn buy(){
     //first get the metadata from the token_id(from the metadatas dict)
     let token_id = approved_holder.token_id;
     let metadata = get_nft_metadata(token_id.to_string(), metadata_dict);
-    let price : U512 = U512::from_dec_str(metadata.price.to_string().as_str()).unwrap_or_default();
-    let amount_to_pay = price.mul(amount);
+    let price : U512 = U512::from_dec_str(metadata.price.to_string().as_str()).unwrap_or_default(); 
+    let amount_to_pay = price.mul(amount*price_rat);
     // transfers the amount of money to the owner
     let publisher_percent : U512 = approved_holder.percentage.into();
     let producer_percent : U512 = U512::from(100u64).sub(publisher_percent);
@@ -488,13 +507,12 @@ fn get_nft_metadata(token_id : String , metadatas_dict : URef) -> ndpc_types::Nf
     }
     let metadata_string = metadata_opt.unwrap_or_revert();
     //split by , => [name , token_uri , checksum , price]
-    let metadata_split = metadata_string.split(",").collect::<Vec<&str>>();
+    let metadata_split = metadata_string.split(',').collect::<Vec<&str>>();
     let name = metadata_split[0].to_string();
     let token_uri = metadata_split[1].to_string();
     let checksum = metadata_split[2].to_string();
     let price = U256::from_dec_str(metadata_split[3]).unwrap();
-    let metadata = ndpc_types::NftMetadata::new(name, token_uri, checksum, price);
-    return metadata;
+    ndpc_types::NftMetadata::new(name, token_uri, checksum, price)
 }
 
 #[no_mangle]
@@ -739,8 +757,14 @@ pub extern "C" fn init(){
 }
 
 fn install_contract(){
+    let time_stamp = runtime::get_named_arg::<u64>("timestamp");
+    let ratio_verifier_hex = runtime::get_named_arg::<String>("ratio_verifier");
+    let ratio_verifier_bytes = base16::decode(ratio_verifier_hex.as_str()).unwrap();
+    let ratio_verifier_bytes = ratio_verifier_bytes.as_slice();
+    let ratio_verifier = casper_types::PublicKey::Ed25519(ed25519_dalek::PublicKey::from_bytes(ratio_verifier_bytes).unwrap());
+
     let entry_points = get_entrypoints();
-    let named_keys = get_named_keys();
+    let named_keys = get_named_keys(time_stamp, ratio_verifier);
     let (contract_hash , _contract_version) = storage::new_contract(entry_points, Some(named_keys) , Some(constants::CONTRACTPACKAGEHASH.to_string()), None);
     let package_hash = ContractPackageHash::new(runtime::get_key(constants::CONTRACTPACKAGEHASH).unwrap_or_revert().into_hash().unwrap_or_revert());
     let constructor_access: URef = storage::create_contract_user_group(package_hash, "constructor", 1, Default::default()).unwrap_or_revert().pop().unwrap_or_revert();
