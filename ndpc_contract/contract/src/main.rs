@@ -18,15 +18,14 @@ compile_error!("target arch should be wasm32: compile with '--target wasm32-unkn
 // We need to explicitly import the std alloc crate and `alloc::string::String` as we're in a
 // `no_std` environment.
 extern crate alloc;
-use core::{ops::{Mul, Div, Sub, MulAssign}, convert::TryInto};
-use alloc::{string::{String, ToString}, collections::BTreeSet, vec::Vec, borrow::ToOwned};
+use core::{ops::{Mul, Div, Sub}};
+use alloc::{string::{String, ToString}, collections::BTreeSet, vec::Vec};
 use casper_contract::{contract_api::{runtime::{self, get_caller, get_call_stack, revert}, storage, system::{get_purse_balance, transfer_from_purse_to_account}}, unwrap_or_revert::UnwrapOrRevert};
 use constants::{get_entrypoints, get_named_keys};
 use event::DropLinkedEvent;
 use ndpc_types::{NFTHolder, ApprovedNFT, U64list,AsStrized, PublishRequest};
-use casper_types::{RuntimeArgs, U256, Key, account::AccountHash, ApiError, URef, U512, ContractPackageHash, CLValue, system::CallStackElement, Signature};
+use casper_types::{RuntimeArgs, U256, Key, account::AccountHash, ApiError, URef, U512, ContractPackageHash, CLValue, system::CallStackElement, PublicKey, AsymmetricType};
 use ndpc_utils::{get_ratio_verifier, verify_signature, get_latest_timestamp, set_latest_timestamp};
-use secp256k1::{Secp256k1, Message, SecretKey, PublicKey, hashes::{hex, sha256}};
 
 
 /// An error enum which can be converted to a `u16` so it can be returned as an `ApiError::User`.
@@ -50,9 +49,7 @@ enum Error {
     EmptyRequestCnt = 17,
     AccessDenied = 18,
     EmptyU64List = 19,
-    TotalSupplyNotFound = 20,
     MintHolderNotFound = 21,
-    MintTokenAlreadyExists = 22,
     InvalidSignature = 23,
     InvalidTimestamp = 24,
 }
@@ -116,7 +113,7 @@ pub extern "C" fn mint(){
     //create the list if it did not exist
     if owner_holder_ids.is_none(){
         let mut new_list = ndpc_types::U64list::new();
-        new_list.list.push((holders_cnt+ 1u64));
+        new_list.list.push(holders_cnt+ 1u64);
         let holderid : u64 = holders_cnt+ 1u64;
         holder_id_final = holderid;
         storage::write(holders_cnt_uref, holderid);
@@ -143,7 +140,7 @@ pub extern "C" fn mint(){
                 break;
             }
         }
-        if (!existed){
+        if !existed {
             let holderid : u64 = holders_cnt+ 1u64;
             holder_id_final = holderid;
             storage::write(holders_cnt_uref, holderid);
@@ -173,6 +170,8 @@ pub extern "C" fn mint(){
 
 #[no_mangle]
 pub extern "C" fn approve(){
+    //TODO: Critical : Check for double occurance of approves
+
     //!!! ---- important TODO: check if the caller account is in the group of producers ----!!!
     //!!! ---- important TODO: check if spender account is in publishers list ----!!!
     // check if the approved_id does not exist in the list of approved_ids of publisher and producer
@@ -220,7 +219,7 @@ pub extern "C" fn approve(){
     }
 
     let mut holder : NFTHolder = storage::dictionary_get(holders_dict, holder_id.to_string().as_str()).unwrap_or_revert().unwrap_or_revert();
-    if holder.remaining_amount < amount{
+    if holder.remaining_amount < amount || holder.amount < amount{
         //the caller does not own enough tokens
         runtime::revert(ApiError::from(Error::NotEnoughTokens));
     }
@@ -286,6 +285,7 @@ pub extern "C" fn approve(){
 
 #[no_mangle]
 pub extern "C" fn disapprove(){
+    
     //check if the caller is the owner of the token
     //define the runtime arguments needed for this entrypoint
     let amount : u64 = runtime::get_named_arg(constants::RUNTIME_ARG_AMOUNT);
@@ -482,7 +482,7 @@ pub extern "C" fn buy(){
         storage::dictionary_put(holders_dict, &caller_string, caller_list);
     }
     //get caller's tokens from owners_dict
-    let mut caller_tokens_opt = storage::dictionary_get::<U64list>(owners_dict, &caller_string).unwrap_or_revert();
+    let caller_tokens_opt = storage::dictionary_get::<U64list>(owners_dict, &caller_string).unwrap_or_revert();
     if caller_tokens_opt.is_none(){
         //the caller tokens list does not exist
         let mut new_list = U64list::new();
@@ -513,43 +513,6 @@ fn get_nft_metadata(token_id : String , metadatas_dict : URef) -> ndpc_types::Nf
     let checksum = metadata_split[2].to_string();
     let price = U256::from_dec_str(metadata_split[3]).unwrap();
     ndpc_types::NftMetadata::new(name, token_uri, checksum, price)
-}
-
-#[no_mangle]
-pub extern "C" fn get_tokens(){
-    let owner_hash = get_caller();
-    let owner = owner_hash.as_string();
-    let owners_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_OWNERS_NAME);
-    let holders_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_HOLDERS_NAME);
-    let metadatas_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_METADATAS_NAME);
-
-    let owners_list = storage::dictionary_get::<U64list>(owners_dict, owner.as_str())
-        .unwrap_or_revert()
-        .unwrap_or_revert_with(ApiError::from(Error::EmptyOwnerShipList));
-    
-        let mut description = String::from("");
-    for holder_id in owners_list.list{
-        description+= "[";
-        let holder = storage::dictionary_get::<ndpc_types::NFTHolder>(holders_dict, holder_id.to_string().as_str())
-            .unwrap_or_revert()
-            .unwrap_or_revert_with(ApiError::from(Error::HolderDoesentExist));
-        description+= holder.to_string().as_str();
-        description+= " , ";
-        let token = get_nft_metadata(holder.token_id.to_string(), metadatas_dict);
-        description+= token.to_json().as_str();
-        description+= "]";
-    }
-    let ret = CLValue::from_t(description).unwrap_or_revert();
-    runtime::ret(ret);
-}
-
-#[no_mangle]
-pub extern "C" fn get_token(){
-    let token_id = runtime::get_named_arg::<u64>(constants::RUNTIME_ARG_TOKEN_ID);
-    let metadatas_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_METADATAS_NAME);
-    let token = get_nft_metadata(token_id.to_string(), metadatas_dict);
-    let ret = CLValue::from_t(token.to_json()).unwrap_or_revert();
-    runtime::ret(ret);
 }
 
 // PublishRequest
@@ -655,14 +618,6 @@ pub extern "C" fn cancel_request(){
     emit(DropLinkedEvent::CancelRequest { request_id });
 }
 
-#[no_mangle]
-pub extern "C" fn get_total_supply(){
-    // use constants::NAMED_KEY_DICT_TOTAL_SUPPLY to get the total supply of given token_id
-    let token_id : String = runtime::get_named_arg(constants::RUNTIME_ARG_TOKEN_ID);
-    let total_supply_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_TOTAL_SUPPLY);
-    let total_supply : u64 = storage::dictionary_get(total_supply_dict, token_id.as_str()).unwrap_or_revert().unwrap_or_revert_with(ApiError::from(Error::TotalSupplyNotFound));
-    let ret = CLValue::from_t(total_supply).unwrap_or_revert();
-}
 
 pub fn contract_package_hash() -> ContractPackageHash {
     let call_stacks = get_call_stack();
@@ -753,16 +708,12 @@ pub extern "C" fn init(){
     storage::new_dictionary(constants::NAMED_KEY_DICT_PUB_REQS).unwrap_or_revert();
     storage::new_dictionary(constants::NAMED_KEY_DICT_PUB_REJS).unwrap_or_revert();
     storage::new_dictionary(constants::NAMED_KEY_DICT_TOTAL_SUPPLY).unwrap_or_revert();
-
 }
 
 fn install_contract(){
     let time_stamp = runtime::get_named_arg::<u64>("timestamp");
     let ratio_verifier_hex = runtime::get_named_arg::<String>("ratio_verifier");
-    let ratio_verifier_bytes = base16::decode(ratio_verifier_hex.as_str()).unwrap();
-    let ratio_verifier_bytes = ratio_verifier_bytes.as_slice();
-    let ratio_verifier = casper_types::PublicKey::Ed25519(ed25519_dalek::PublicKey::from_bytes(ratio_verifier_bytes).unwrap());
-
+    let ratio_verifier = PublicKey::from_hex(ratio_verifier_hex).unwrap();
     let entry_points = get_entrypoints();
     let named_keys = get_named_keys(time_stamp, ratio_verifier);
     let (contract_hash , _contract_version) = storage::new_contract(entry_points, Some(named_keys) , Some(constants::CONTRACTPACKAGEHASH.to_string()), None);

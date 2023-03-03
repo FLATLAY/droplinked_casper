@@ -38,13 +38,20 @@ pub extern "C" fn call() {
     let contract_hash_bytes = contract_hash_key.into_hash().unwrap_or_revert();
     let contract_hash = ContractHash::new(contract_hash_bytes);
     let entry_point_name : &str = "buy";
+    
+    let ratio : String = runtime::get_named_arg("current_price_timestamp");
+    let signature : String = runtime::get_named_arg("signature");
+
+
     // This creates a new empty purse that the caller will use just this one time.
     let new_purse = system::create_purse();
     system::transfer_from_purse_to_purse(account::get_main_purse(), new_purse, amount, None)
         .unwrap_or_revert();
     let mut runtimeargs = RuntimeArgs::new();
-    runtimeargs.insert("purse_addr", Key::URef(new_purse));
-    runtimeargs.insert("amount", cnt);
-    runtimeargs.insert("approved_id", approved_id);
+    runtimeargs.insert("purse_addr", Key::URef(new_purse)).unwrap();
+    runtimeargs.insert("amount", cnt).unwrap();
+    runtimeargs.insert("approved_id", approved_id).unwrap();
+    runtimeargs.insert("signature", signature).unwrap();
+    runtimeargs.insert("current_price_timestamp", ratio).unwrap();
     runtime::call_contract::<()>(contract_hash, entry_point_name, runtimeargs);
 }

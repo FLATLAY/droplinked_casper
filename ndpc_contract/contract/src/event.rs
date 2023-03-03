@@ -1,6 +1,4 @@
-use casper_types::{Key, account::AccountHash};
-use crate::ndpc_types;
-use ndpc_types::{ApprovedNFT,MetadataHash,NFTHolder,NftMetadata,PublishRequest};
+use casper_types::{account::AccountHash};
 pub enum DropLinkedEvent{
     Mint {
         recipient : AccountHash,

@@ -5,8 +5,10 @@
 // |__________________________________________________________________________________________________
 
 extern crate alloc;
+use core::fmt::Display;
+
 use alloc::{string::{String, ToString}, vec::Vec, borrow::ToOwned, boxed::Box, format};
-use casper_contract::contract_api::{runtime::blake2b, storage};
+use casper_contract::contract_api::runtime::blake2b;
 use casper_types::{account::AccountHash, bytesrepr::{FromBytes, ToBytes, Error}, CLTyped, U256};
 const METADATA_HASH_LENGTH: usize = 32;
 
@@ -55,7 +57,7 @@ pub struct U64list{
 impl ToBytes for NftMetadata{
     fn to_bytes(&self) -> Result<Vec<u8>, casper_types::bytesrepr::Error> {
         let mut result = alloc::vec::Vec::new();
-        let mut nft_metadata_string = format!("{},{},{},{}", self.name, self.token_uri, self.checksum, self.price);
+        let nft_metadata_string = format!("{},{},{},{}", self.name, self.token_uri, self.checksum, self.price);
         result.append(&mut nft_metadata_string.to_bytes()?);
         Ok(result)
     }
@@ -99,9 +101,6 @@ impl NftMetadata{
     pub fn to_json(&self) -> String{
         format!("{{\"name\":\"{}\",\"token_uri\":\"{}\",\"checksum\":\"{}\",\"price\":\"{}\"}}",self.name,self.token_uri,self.checksum,self.price)
     }
-    pub fn to_string(&self) -> String{
-        format!("{},{},{},{}",self.name,self.token_uri,self.checksum,self.price)
-    }
     pub fn from_json(json : String , price : U256) -> Result<Self, Error>{
         let split = json.split('\"');
         //TODO: use another functionality to get the name, token_uri and checksum from the json (this one depends on the index of the split)
@@ -120,6 +119,11 @@ impl NftMetadata{
             }
         }
         Ok(NftMetadata::new(name,token_uri,checksum,price))
+    }
+}
+impl Display for NftMetadata{
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f,"{},{},{},{}",self.name,self.token_uri,self.checksum,self.price)
     }
 }
 
@@ -165,8 +169,11 @@ impl NFTHolder{
     pub fn new(remaining_amount : u64 , amount : u64 , token_id : u64) -> Self{
         NFTHolder {remaining_amount, amount,token_id}
     }
-    pub fn to_string(&self) -> String{
-        format!("{{\"remaining_amount\":\"{}\",\"amount\":\"{}\",\"token_id\":\"{}\"}}",self.remaining_amount,self.amount,self.token_id)
+}
+
+impl Display for NFTHolder {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{{\"remaining_amount\":\"{}\",\"amount\":\"{}\",\"token_id\":\"{}\"}}",self.remaining_amount,self.amount,self.token_id)
     }
 }
 
@@ -216,8 +223,10 @@ impl ApprovedNFT{
     pub fn new(holder_id : u64 , amount : u64 , owneraccount : AccountHash , publisheraccount : AccountHash, token_id : u64, percentage : u8) -> Self{
         ApprovedNFT {holder_id, amount, owneraccount, publisheraccount, token_id , percentage}
     }
-    pub fn to_string(&self) -> String{
-        format!("{{\"holder_id\":\"{}\",\"amount\":\"{}\",\"owneraccount\":\"{}\",\"publisheraccount\":\"{}\",\"token_id\":\"{}\",\"percentage\":\"{}\"}}",self.holder_id,self.amount,self.owneraccount,self.publisheraccount,self.token_id,self.percentage)
+}
+impl Display for ApprovedNFT{
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{{\"holder_id\":\"{}\",\"amount\":\"{}\",\"owneraccount\":\"{}\",\"publisheraccount\":\"{}\",\"token_id\":\"{}\",\"percentage\":\"{}\"}}",self.holder_id,self.amount,self.owneraccount,self.publisheraccount,self.token_id,self.percentage)
     }
 }
 impl ToBytes for U64list{
@@ -260,6 +269,11 @@ impl U64list{
     }
     pub fn add(&mut self, value : u64){
         self.list.push(value);
+    }
+}
+impl Default for U64list{
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -306,9 +320,6 @@ impl PublishRequest{
     pub fn new(holder_id : u64, amount : u64, percentage : u8, producer : AccountHash, publisher : AccountHash) -> Self{
         PublishRequest {holder_id, amount, percentage, producer, publisher}
     }
-    pub fn to_string(&self) -> String{
-        format!("{},{},{},{},{}",self.holder_id,self.amount,self.percentage,self.producer,self.publisher)
-    }
     pub fn from_string(string : String) -> Self{
         let mut split = string.split(',');
         let holder_id = split.next().unwrap().parse::<u64>().unwrap();
@@ -319,11 +330,16 @@ impl PublishRequest{
         PublishRequest {holder_id, amount, percentage, producer, publisher}
     }
 }
+impl Display for PublishRequest{
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{},{},{},{},{}", self.holder_id,self.amount,self.percentage,self.producer,self.publisher)
+    }
+}
 
-pub trait from_stringize{
+pub trait FromStringize{
     fn from_string(string : String) -> Self;
 }
-impl from_stringize for AccountHash{
+impl FromStringize for AccountHash{
     fn from_string(string : String) -> Self{
         AccountHash::from_formatted_str(format!("account-hash-{}",string).as_str()).unwrap()
     }
