@@ -85,7 +85,7 @@ Here we explain each method within the contract and how they are used:
 
 ## Storage Model
 
-![storageModel](https://raw.githubusercontent.com/FLATLAY/droplinked_casper/main/ndpc_contract/Storage.jpg)
+![storageModel](https://user-images.githubusercontent.com/20683538/226114657-869ba832-f870-4571-9692-ff25347f54c3.png)
 
 ## Deployment
 
