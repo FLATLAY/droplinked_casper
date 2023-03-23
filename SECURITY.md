@@ -10,7 +10,7 @@ If you believe you have found a security vulnerability in our repository, please
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, please report them to one of these addresses: nokhodian@gmail.com | matin.ghiasvand1381@gmail.com
+Instead, please report them to one of these addresses: nokhodian@gmail.com | matin.droplinked@gmail.com
 
 Please include the requested information listed below (as much as you can provide) to help us better understand the nature and scope of the possible issue:
 
