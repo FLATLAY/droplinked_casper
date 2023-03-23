@@ -1,4 +1,44 @@
-# droplinked contract
+# Droplinked contract
+
+## Build and deploy
+### Prerequisites
+You need to have [`CLI Client`](https://docs.casperlabs.io/developers/prerequisites/#the-casper-command-line-client), `rust` (1.60.0-nightly or higher), and `make` installed in your system. 
+### Build
+Run :
+```
+make build-contract
+```
+in the _ndpc_contract_ folder, in order to build the WASM file, to deploy it into casper chain.
+
+The result of this build would be located in ndpc_contract/deploy/contract.wasm file.
+
+**If you do not have `make` installed, you could run this command directly:**
+
+```
+cd contract && cargo build --release --target wasm32-unknown-unknown
+wasm-strip contract/target/wasm32-unknown-unknown/release/contract.wasm 2>/dev/null | true
+cp contract/target/wasm32-unknown-unknown/release/contract.wasm deploy/contract.wasm
+```
+
+
+### Deploy
+In deploy part, we should send this WASM file, to casper nodes, to deploy them on the chain,
+Run :
+```
+casper-client put-deploy -n http://<CSPR_RPC_HERE>:7777 --chain-name <CHAINNAME> --payment-amount 190420060000 -k <PATH_TO_SECRET_KEY> --session-path deploy/contract.wasm --session-arg "timestamp:u64='<CURRENTTIMESTAMP>'" --session-arg "ratio_verifier:string='<PUBLICKEY_OF_RATIO_VERIFIER>'"
+```
+where:
+- `CSPR_RPC` is the ip address of a casper rpc node (for testnet or mainnet) which could be found [here](https://testnet.cspr.live/tools/peers) and [here](https://cspr.live/tools/peers) for testnet or mainnet nodes,
+- `CHAINNAME` should be `casper-test` for testnet, and `casper` for mainnet.
+- `PATH_TO_SECRET_KEY`, which could be accessed by downloading your private-key from `casper-signer`
+- `CURRENTTIMESTAMP` which should be set to the current UNIXEPOCH time, it is used for security issues on contract
+- `PUBLICKEY_OF_RATIO_VERIFIER`, should be set to the public key of the party (or person), who signs the CSPR/USDT ratio for `buy` entrypoint
+
+### Unit tests
+**The Contract was developed and tested on casper-testnet, so this repository does not include unit tests for this contract**
+
+---
+
 ## Introduction
 On the droplinked protocol, we are registering products on chain and to enable 3rd party publishers to leverage these registered products and sell them across any marketplace, dapp or native site in order to earn commission. We are complimenting this with headless tooling for NFT Gated store fronts on droplinked.com and other valued added NFT solutions. This particular repository contains the customized contract for the Casper Network.
 
@@ -11,7 +51,9 @@ This way, we only store a single token ID (which represents the product), and a 
 On droplinked, a publisher can send a publish request to the producer with a particular pre-defined commission amount. The producer can accept or reject requests and if a request is accepted, the publisher is then given the abilkity to publish the product to share with consumers and earn their entitled settlement portion.
 
 There exists a [python util file](https://github.com/FLATLAY/droplinked_casper/blob/b089e7c3bc9c04304fa5eb5984902297ec939c85/ndpc_contract/util.py) which interacts with the contract (for testing purposes). It uses 3 accounts (their keys are located in the [Keys Directory](https://github.com/FLATLAY/droplinked_casper/tree/b089e7c3bc9c04304fa5eb5984902297ec939c85/ndpc_contract/keys)).
-  
+
+---
+
 ## Structure of the contract
 Here we explain each structure used within the contract and how they are used:
 
@@ -19,6 +61,8 @@ Here we explain each structure used within the contract and how they are used:
 2. [NFTMetadata](https://github.com/FLATLAY/droplinked_casper/blob/8378af28ebeda4559ae76044d41ff9cdcc770227/ndpc_contract/contract/src/ndpc_types.rs#L26-L31) : this struct holds the metadata of a token. It has a name, a URI(it can be IPFS hash), and a checksum (the hash of the file uploaded off-chain), and a price (in USD). We will add functionality to buy method to buy a token with a constant USD price that levarage CSPR token in future.
 3. [PublishRequest](https://github.com/FLATLAY/droplinked_casper/blob/8378af28ebeda4559ae76044d41ff9cdcc770227/ndpc_contract/contract/src/ndpc_types.rs#L19-L25) : this struct holds the request of a publisher to a producer to publish a token. It has a holder_id, amount, a publisher address, a producer address, and commission. this struct will be saved in a dictionary which maps a request_id to a PublishRequest.
 4. [ApprovedNFT](https://github.com/FLATLAY/droplinked_casper/blob/8378af28ebeda4559ae76044d41ff9cdcc770227/ndpc_contract/contract/src/ndpc_types.rs#L39-L46) : this struct holds the data of the approved tokens (for publishers), it has a holder_id, amount, owner and publisher account address, the token_id, and the amount of commission. After approving a PublishRequest by a producer, it will be saved in a dictionary which maps every approved_id to this object.
+
+---
 
 ## Methods (EntryPoints)
 Here we explain each method within the contract and how they are used:
@@ -37,13 +81,15 @@ Here we explain each method within the contract and how they are used:
 - [TODO] Producer : producers can mint tokens and approve requests.
 - [TODO] Publisher : publishers can publish approved requests and send publish requests.
 
+---
+
 ## Storage Model
 
 ![storageModel](https://raw.githubusercontent.com/FLATLAY/droplinked_casper/main/ndpc_contract/Storage.jpg)
 
 ## Deployment
 
-This contract is deployed on Testnet (casper-test) successfully, here is the contract hash: [02ba6471c9859dad18733c03ccf584631e7e01ddc0e54880349aed151e0e0b13](https://testnet.cspr.live/contract/02ba6471c9859dad18733c03ccf584631e7e01ddc0e54880349aed151e0e0b13)
+This contract is deployed on Testnet (casper-test) successfully, here is the contract hash: [7e818936550e216dd01e83fba521c726a573336afd9953148b97aec01e8c3d68](https://testnet.cspr.live/contract/7e818936550e216dd01e83fba521c726a573336afd9953148b97aec01e8c3d68)
 
 
 # Project Feautures
