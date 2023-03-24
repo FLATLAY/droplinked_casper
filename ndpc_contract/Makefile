@@ -16,6 +16,7 @@ build-all: build-contract build-session
 test: build-contract
 	mkdir -p tests/wasm
 	cp contract/target/wasm32-unknown-unknown/release/contract.wasm tests/wasm
+	cd tests && cargo test
 
 clippy:
 	cd contract && cargo clippy --all-targets -- -D warnings

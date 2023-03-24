@@ -1,4 +1,4 @@
-use alloc::{string::String, vec::Vec, borrow::ToOwned};
+use alloc::{string::String, borrow::ToOwned};
 use casper_contract::{unwrap_or_revert::UnwrapOrRevert, contract_api::{runtime::{self, revert}, storage}};
 use casper_types::PublicKey;
 use ed25519_dalek::{Verifier, ed25519::signature::Signature};
@@ -33,7 +33,7 @@ pub fn verify_signature(public_key : PublicKey, signature : String, message : St
             let sig = ed25519_dalek::Signature::from_bytes(base16::decode(signature.as_str()).unwrap().as_slice()).unwrap();
             x.verify(owned_string.as_bytes(), &sig).is_ok()
         }
-        casper_types::PublicKey::Secp256k1(x)=>{
+        casper_types::PublicKey::Secp256k1(_x)=>{
             revert(Error::TransferFailed);
         }
         _ => {

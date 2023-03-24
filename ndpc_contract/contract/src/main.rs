@@ -74,6 +74,7 @@ pub extern "C" fn mint(){
     if generated_metadata_res.is_err(){
         runtime::revert(ApiError::from(Error::MintMetadataNotValid));
     }
+    
     let generated_metadata = generated_metadata_res.unwrap();
     let metadata_hash = generated_metadata.get_hash().as_string();
     

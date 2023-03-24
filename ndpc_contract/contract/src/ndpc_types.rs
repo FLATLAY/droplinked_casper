@@ -47,7 +47,8 @@ pub struct ApprovedNFT {
     pub publisheraccount : AccountHash,
     pub token_id : u64,
     pub percentage : u8
-} //size : 32 + 32 + 8 + 8 + 8 + 1 = 89 bytes
+} 
+//size : 32 + 32 + 8 + 8 + 8 + 1 = 89 bytes
 
 // a simple wrapper for a list of u64 (used to store multiple lists of u64 in the contract)
 pub struct U64list{
