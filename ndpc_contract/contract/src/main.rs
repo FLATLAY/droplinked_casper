@@ -88,7 +88,6 @@ pub extern "C" fn mint(){
     let owners_dict_uref = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_OWNERS_NAME);
     let tokens_cnt_uref = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_TOKENSCNT);
     
-    
 
     let mut _token_id_final : u64 = 0u64;
     let _token_id : u64 = 0u64;
@@ -727,11 +726,30 @@ pub extern "C" fn publish_offer(){
     let holder_id: u64 = runtime::get_named_arg(constants::RUNTIME_ARG_HOLDER_ID);
     let amount: u64 = runtime::get_named_arg(constants::RUNTIME_ARG_AMOUNT);
     let commision: u8 = runtime::get_named_arg(constants::RUNTIME_ARG_COMISSION);
-    // generate an offer_id and create a new offer object
     let offers_cnt_uref = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_OFFERS_CNT);
     let offer_id = storage::read::<u64>(offers_cnt_uref).unwrap_or_revert().unwrap_or_revert_with(ApiError::from(Error::EmptyOfferCnt))+1;
     let offer = PublishOffer::new(holder_id, amount, commision, caller);
     let offers_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_OFFER_NAME);
+    let holders_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_HOLDERS_NAME);
+
+    // check if the caller has the holder_id and enough amount in it
+    let holder : NFTHolder = storage::dictionary_get(holders_dict, holder_id.to_string().as_str()).unwrap_or_revert().unwrap_or_revert();
+    if holder.remaining_amount < amount || holder.amount < amount{
+        //the caller does not own enough tokens
+        runtime::revert(ApiError::from(Error::NotEnoughTokens));
+    }
+    let owners_dict_uref = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_OWNERS_NAME);
+    let owner_holder_ids = storage::dictionary_get::<U64list>(owners_dict_uref, caller.to_string().as_str()).unwrap_or_revert().unwrap();
+    let mut found = false;
+    for holder_id_t in owner_holder_ids.list.iter(){
+        if *holder_id_t == holder_id {
+            found = true;
+        }
+    }
+    if !found{
+        revert(ApiError::from(Error::AccessDenied));
+    }
+    
     storage::dictionary_put(offers_dict, offer_id.to_string().as_str(), offer);
     emit(DropLinkedEvent::PublishOffer{holder_id, amount, commision, producer:caller, offer_id});
     // return the offer_id
