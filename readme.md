@@ -34,8 +34,24 @@ where:
 - `CURRENTTIMESTAMP` which should be set to the current UNIXEPOCH time, it is used for security issues on contract
 - `PUBLICKEY_OF_RATIO_VERIFIER`, should be set to the public key of the party (or person), who signs the CSPR/USDT ratio for `buy` entrypoint
 
-### Unit tests
-**The Contract was developed and tested on casper-testnet, so this repository does not include unit tests for this contract**
+### Unit and Integration tests
+ To run the tests, cd into the _ndpc_contract_ folder, and in a linux environment with make installed, run :
+ ```
+ make test
+ ```
+ 
+ You should see the following result in your terminal : 
+ ```
+ running 5 tests
+test tests::mint_entrypoint ... ok
+test tests::publish_request_entry_point ... ok
+test tests::cancel_request_entry_point ... ok
+test tests::approve_entry_point ... ok
+test tests::disapprove_entry_point ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.03s
+```
+Also you can change the code in tests/src dir, and add your tests, or edit this tests. Currently there is a test method, for each entrypoint of contract (except buy method which needs a more complex testing), which are : `Mint`, `Publish_request`, `approve`, `cancel_request`, `disapprove`
 
 ---
 
