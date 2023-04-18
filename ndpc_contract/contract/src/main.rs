@@ -23,7 +23,7 @@ use alloc::{string::{String, ToString}, collections::BTreeSet, vec::Vec};
 use casper_contract::{contract_api::{runtime::{self, get_caller, get_call_stack, revert}, storage, system::{get_purse_balance, transfer_from_purse_to_account}}, unwrap_or_revert::UnwrapOrRevert};
 use constants::{get_entrypoints, get_named_keys};
 use event::DropLinkedEvent;
-use ndpc_types::{NFTHolder, ApprovedNFT, U64list,AsStrized, PublishRequest};
+use ndpc_types::{NFTHolder, ApprovedNFT, U64list,AsStrized, PublishRequest, PublishOffer};
 use casper_types::{RuntimeArgs, U256, Key, account::AccountHash, ApiError, URef, U512, ContractPackageHash, CLValue, system::CallStackElement, PublicKey, AsymmetricType};
 use ndpc_utils::{get_ratio_verifier, verify_signature, get_latest_timestamp, set_latest_timestamp};
 
@@ -52,6 +52,8 @@ enum Error {
     MintHolderNotFound = 21,
     InvalidSignature = 23,
     InvalidTimestamp = 24,
+    OfferDoesentExist = 25,
+    EmptyOfferCnt = 26,
 }
 impl From<Error> for ApiError {
     fn from(error: Error) -> Self {
@@ -201,6 +203,8 @@ pub extern "C" fn approve(){
     let producers_approved_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_PRODAPPROVED_NAME);
     let approved_cnt_uref = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_APPROVED_CNT);
     let approved_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_APPROVED_NAME);
+    let offers_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_OFFER_NAME);
+
 
     let caller_account = runtime::get_caller();
     let caller : String = caller_account.as_string();
@@ -228,7 +232,9 @@ pub extern "C" fn approve(){
     //update the remaining amount of the holder
     holder.remaining_amount -= amount;
     //create the approved holder
-    let approved_holder = ApprovedNFT::new(holder_id, amount , caller_account, spender_acc, holder.token_id, request_obj.percentage);
+    // TODO: get offer based on request_obj.offer_id, and get the commission from it    
+    let offer_obj = storage::dictionary_get::<PublishOffer>(offers_dict, request_obj.offer_id.to_string().as_str()).unwrap_or_revert().unwrap_or_revert();
+    let approved_holder = ApprovedNFT::new(holder_id, amount , caller_account, spender_acc, holder.token_id, offer_obj.commision);
     
     storage::dictionary_put(holders_dict, holder_id.to_string().as_str(), holder); //copy i g
 
@@ -519,21 +525,28 @@ fn get_nft_metadata(token_id : String , metadatas_dict : URef) -> ndpc_types::Nf
 // PublishRequest
 #[no_mangle]
 pub extern "C" fn publish_request(){
-    //TODO: check if caller is a publisher or not
     //storages we need to work with
     let holders_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_HOLDERS_NAME);
     let owners_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_OWNERS_NAME);
     let requests_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_REQ_OBJ);
     let prod_reqs_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_PROD_REQS);
     let pub_reqs_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_PUB_REQS);
+    let offers_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_OFFER_NAME);
+    let offer_id = runtime::get_named_arg::<u64>(constants::RUNTIME_ARG_OFFER_ID);
+    // check if the offer_id exists in the offers_dict
+    let offer_opt = storage::dictionary_get::<ndpc_types::PublishOffer>(offers_dict, offer_id.to_string().as_str())
+        .unwrap_or_revert();
+    if offer_opt.is_none(){
+        runtime::revert(ApiError::from(Error::OfferDoesentExist));
+    }
+    let offer = offer_opt.unwrap_or_revert();
+    let holder_id = offer.holder_id;
+    let amount = offer.amount;
     //runtime args
-    let producer_account_hash = runtime::get_named_arg::<Key>(constants::RUNTIME_ARG_PRODUCER_ACCOUNT_HASH).into_account().unwrap_or_revert();
-    let holder_id = runtime::get_named_arg::<u64>(constants::RUNTIME_ARG_HOLDER_ID);
-    let amount = runtime::get_named_arg::<u64>(constants::RUNTIME_ARG_AMOUNT);
-    let comission = runtime::get_named_arg::<u8>(constants::RUNTIME_ARG_COMISSION);
+    let producer_account_hash = offer.producer;
     let caller = get_caller().as_string();
     let producer_string = producer_account_hash.as_string();
-    //get holder by id
+    //get holder by id  
     let holder = storage::dictionary_get::<ndpc_types::NFTHolder>(holders_dict, holder_id.to_string().as_str())
         .unwrap_or_revert()
         .unwrap_or_revert_with(ApiError::from(Error::HolderDoesentExist));
@@ -555,8 +568,10 @@ pub extern "C" fn publish_request(){
     if !is_owner{
         runtime::revert(ApiError::from(Error::NotOwnerOfHolderId));
     }
+    
+
     //create publish request
-    let publish_request = ndpc_types::PublishRequest::new(holder_id, amount, comission,producer_account_hash,get_caller());
+    let publish_request = ndpc_types::PublishRequest::new(holder_id, amount, offer_id,producer_account_hash,get_caller());
     let tokens_cnt_uref = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_REQ_CNT);
     let request_cnt = storage::read::<u64>(tokens_cnt_uref).unwrap_or_revert().unwrap_or_revert_with(ApiError::from(Error::EmptyRequestCnt));
     let request_id = request_cnt + 1;
@@ -688,11 +703,40 @@ fn emit(event: DropLinkedEvent) {
             param.insert("approved_id", approved_id.to_string());
             param.insert("buyer", buyer.to_string());
             events.push(param);
+        },
+        DropLinkedEvent::PublishOffer { holder_id, amount, commision, producer , offer_id} => {
+            let mut param = alloc::collections::BTreeMap::new();
+            param.insert(constants::CONTRACTPACKAGEHASH, package.to_string());
+            param.insert("event_type", "droplinked_publish_offer".to_string());
+            param.insert("holder_id", holder_id.to_string());
+            param.insert("amount", amount.to_string());
+            param.insert("commision", commision.to_string());
+            param.insert("producer", producer.to_string());
+            param.insert("offer_id", offer_id.to_string());
+            events.push(param);
         }
     }
     for param in events{
         let _:URef = storage::new_uref(param);
     }
+}
+
+#[no_mangle]
+pub extern "C" fn publish_offer(){
+    let caller = runtime::get_caller();
+    let holder_id: u64 = runtime::get_named_arg(constants::RUNTIME_ARG_HOLDER_ID);
+    let amount: u64 = runtime::get_named_arg(constants::RUNTIME_ARG_AMOUNT);
+    let commision: u8 = runtime::get_named_arg(constants::RUNTIME_ARG_COMISSION);
+    // generate an offer_id and create a new offer object
+    let offers_cnt_uref = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_OFFERS_CNT);
+    let offer_id = storage::read::<u64>(offers_cnt_uref).unwrap_or_revert().unwrap_or_revert_with(ApiError::from(Error::EmptyOfferCnt))+1;
+    let offer = PublishOffer::new(holder_id, amount, commision, caller);
+    let offers_dict = ndpc_utils::get_named_key_by_name(constants::NAMED_KEY_DICT_OFFER_NAME);
+    storage::dictionary_put(offers_dict, offer_id.to_string().as_str(), offer);
+    emit(DropLinkedEvent::PublishOffer{holder_id, amount, commision, producer:caller, offer_id});
+    // return the offer_id
+    let ret = CLValue::from_t(offer_id).unwrap_or_revert();
+    runtime::ret(ret);
 }
 
 #[no_mangle]
@@ -709,6 +753,8 @@ pub extern "C" fn init(){
     storage::new_dictionary(constants::NAMED_KEY_DICT_PUB_REQS).unwrap_or_revert();
     storage::new_dictionary(constants::NAMED_KEY_DICT_PUB_REJS).unwrap_or_revert();
     storage::new_dictionary(constants::NAMED_KEY_DICT_TOTAL_SUPPLY).unwrap_or_revert();
+    storage::new_dictionary(constants::NAMED_KEY_DICT_OFFER_NAME).unwrap_or_revert();
+    
 }
 
 fn install_contract(){

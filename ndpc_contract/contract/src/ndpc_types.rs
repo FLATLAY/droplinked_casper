@@ -22,10 +22,25 @@ impl AsStrized for MetadataHash{
 pub struct PublishRequest{ 
     pub holder_id : u64,
     pub amount : u64,
-    pub percentage : u8,
+    pub offer_id : u64,
     pub producer : AccountHash,
     pub publisher : AccountHash,
 }
+
+pub struct PublishOffer{
+    pub holder_id : u64, // 8
+    pub amount : u64, // 8
+    pub commision : u8, // 1
+    pub producer : AccountHash, //32
+}
+impl PublishOffer {
+    pub(crate) fn new(holder_id: u64, amount: u64, commision: u8, producer: AccountHash) -> Self {
+        PublishOffer{holder_id, amount, commision, producer}
+    }
+}
+// size : 8 + 8 + 1 + 32 = 49 bytes
+
+
 pub struct NftMetadata{
     pub name: String,
     pub token_uri: String,
@@ -49,6 +64,9 @@ pub struct ApprovedNFT {
     pub percentage : u8
 } 
 //size : 32 + 32 + 8 + 8 + 8 + 1 = 89 bytes
+
+
+
 
 // a simple wrapper for a list of u64 (used to store multiple lists of u64 in the contract)
 pub struct U64list{
@@ -283,7 +301,7 @@ impl ToBytes for PublishRequest{
         let mut result = Vec::new();
         result.append(&mut self.holder_id.to_bytes()?);
         result.append(&mut self.amount.to_bytes()?);
-        result.append(&mut self.percentage.to_bytes()?);
+        result.append(&mut self.offer_id.to_bytes()?);
         result.append(&mut self.producer.to_bytes()?);
         result.append(&mut self.publisher.to_bytes()?);
         Ok(result)
@@ -295,17 +313,17 @@ impl ToBytes for PublishRequest{
         self.to_bytes()
     }
     fn serialized_length(&self) -> usize{
-        self.holder_id.serialized_length() + self.amount.serialized_length() + self.percentage.serialized_length() + self.producer.serialized_length() + self.publisher.serialized_length()
+        self.holder_id.serialized_length() + self.amount.serialized_length() + self.offer_id.serialized_length() + self.producer.serialized_length() + self.publisher.serialized_length()
     }
 }
 impl FromBytes for PublishRequest{
     fn from_bytes(bytes: &[u8]) -> Result<(Self, &[u8]), casper_types::bytesrepr::Error> {
         let (holder_id, rem) = FromBytes::from_bytes(bytes)?;
         let (amount, rem) = FromBytes::from_bytes(rem)?;
-        let (percentage, rem) = FromBytes::from_bytes(rem)?;
+        let (offer_id, rem) = FromBytes::from_bytes(rem)?;
         let (producer, rem) = FromBytes::from_bytes(rem)?;
         let (publisher, rem) = FromBytes::from_bytes(rem)?;
-        Ok((PublishRequest{holder_id, amount, percentage, producer, publisher}, rem))
+        Ok((PublishRequest{holder_id, amount, offer_id, producer, publisher}, rem))
     }
     fn from_vec(bytes: Vec<u8>) -> Result<(Self, Vec<u8>), casper_types::bytesrepr::Error> {
         Self::from_bytes(bytes.as_slice()).map(|(x, remainder)| (x, Vec::from(remainder)))
@@ -318,22 +336,22 @@ impl CLTyped for PublishRequest{
 }
 
 impl PublishRequest{
-    pub fn new(holder_id : u64, amount : u64, percentage : u8, producer : AccountHash, publisher : AccountHash) -> Self{
-        PublishRequest {holder_id, amount, percentage, producer, publisher}
+    pub fn new(holder_id : u64, amount : u64, offer_id : u64, producer : AccountHash, publisher : AccountHash) -> Self{
+        PublishRequest {holder_id, amount, offer_id, producer, publisher}
     }
     pub fn from_string(string : String) -> Self{
         let mut split = string.split(',');
         let holder_id = split.next().unwrap().parse::<u64>().unwrap();
         let amount = split.next().unwrap().parse::<u64>().unwrap();
-        let percentage = split.next().unwrap().parse::<u8>().unwrap();
+        let offer_id = split.next().unwrap().parse::<u64>().unwrap();
         let producer = AccountHash::from_string(split.next().unwrap().to_string());
         let publisher = AccountHash::from_string(split.next().unwrap().to_string());
-        PublishRequest {holder_id, amount, percentage, producer, publisher}
+        PublishRequest {holder_id, amount, offer_id, producer, publisher}
     }
 }
 impl Display for PublishRequest{
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{},{},{},{},{}", self.holder_id,self.amount,self.percentage,self.producer,self.publisher)
+        write!(f, "{},{},{},{},{}", self.holder_id,self.amount,self.offer_id,self.producer,self.publisher)
     }
 }
 
@@ -351,5 +369,43 @@ pub trait AsStrized{
 impl AsStrized for AccountHash{
     fn as_string(&self) -> String{
         base16::encode_lower(&self.0)
+    }
+}
+
+// impl FromBytes and ToBytes and CLTyped for PublishOffer
+impl ToBytes for PublishOffer{
+    fn to_bytes(&self) -> Result<Vec<u8>, casper_types::bytesrepr::Error> {
+        let mut result = Vec::new();
+        result.append(&mut self.holder_id.to_bytes()?);
+        result.append(&mut self.amount.to_bytes()?);
+        result.append(&mut self.producer.to_bytes()?);
+        result.append(&mut self.commision.to_bytes()?);
+        Ok(result)
+    }
+    fn into_bytes(self) -> Result<Vec<u8>, casper_types::bytesrepr::Error>
+    where
+        Self: Sized,
+    {
+        self.to_bytes()
+    }
+    fn serialized_length(&self) -> usize{
+        self.holder_id.serialized_length() + self.amount.serialized_length() + self.commision.serialized_length() + self.producer.serialized_length()
+    }
+}
+impl FromBytes for PublishOffer{
+    fn from_bytes(bytes: &[u8]) -> Result<(Self, &[u8]), casper_types::bytesrepr::Error> {
+        let (holder_id, rem) = FromBytes::from_bytes(bytes)?;
+        let (amount, rem) = FromBytes::from_bytes(rem)?;
+        let (producer, rem) = FromBytes::from_bytes(rem)?;
+        let (commision, rem) = FromBytes::from_bytes(rem)?;
+        Ok((PublishOffer{holder_id, amount, commision, producer}, rem))
+    }
+    fn from_vec(bytes: Vec<u8>) -> Result<(Self, Vec<u8>), casper_types::bytesrepr::Error> {
+        Self::from_bytes(bytes.as_slice()).map(|(x, remainder)| (x, Vec::from(remainder)))
+    }
+}
+impl CLTyped for PublishOffer{
+    fn cl_type() -> casper_types::CLType {
+        casper_types::CLType::ByteArray(49u32)
     }
 }
