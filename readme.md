@@ -106,7 +106,7 @@ Here we explain each method within the contract and how they are used:
 
 ## Deployment
 
-This contract is deployed on Testnet (casper-test) successfully, here is the contract hash: [c20d4e294f57319bd9d303781b3d29db63c450dc7252264e888a26fa312a8823](https://testnet.cspr.live/contract/c20d4e294f57319bd9d303781b3d29db63c450dc7252264e888a26fa312a8823)
+This contract is deployed on Testnet (casper-test) successfully, here is the contract hash: [5d4a134b4759b2c6e53c742c1bfab8a84a57525ac5554e5ca29dc1e6e163b660](https://testnet.cspr.live/contract/5d4a134b4759b2c6e53c742c1bfab8a84a57525ac5554e5ca29dc1e6e163b660)
 
 
 # Project Feautures
