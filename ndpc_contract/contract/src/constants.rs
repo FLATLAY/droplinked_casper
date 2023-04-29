@@ -31,7 +31,6 @@ pub const RUNTIME_ARG_HOLDER_ID : &str = "holder_id";
 pub const RUNTIME_ARG_SPENDER : &str = "publisher-account";
 pub const RUNTIME_ARG_APPROVED_ID : &str = "approved_id";
 pub const RUNTIME_ARG_COMISSION : &str = "comission";
-pub const RUNTIME_ARG_PRODUCER_ACCOUNT_HASH : &str = "producer-account";
 pub const RUNTIME_ARG_REQUEST_ID : &str = "request_id";
 pub const RUNTIME_ARG_CURRENT_PRICE_TIMESTAMP : &str = "current_price_timestamp";
 pub const RUNTIME_ARG_SIGNATURE : &str = "signature";
