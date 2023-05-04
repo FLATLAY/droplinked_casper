@@ -4,7 +4,7 @@ import requests
 from termcolor import colored
 
 rpc_node = "http://195.201.174.222:7777"
-contract_hash = "b9bfb03e02094334ce448186a46c2eb3610c79f94bb700d1e82a11c868d7f96d"
+contract_hash = "060a4a27e7ebb264ba366ced80824988dd2e43333f69e962c1d2e30b11e6093a"
 
 acc_1_name = "acc1"
 acc_1_hash = "95dcc50ad49351dd97aab4678d9926de18981ab611903c145341df252300e88a"
@@ -88,7 +88,7 @@ def get_token(token_id):
     obj = str(cmds_js['result']['stored_value']['CLValue']['parsed']).split(',')
     #good3,sjducjfnbgjchfnfjdurjleoricjdnrj,ikojcjfnbgjchfnfjdurjdkieicjidue,10000000000
     #name,uri,checksum,price
-    js_obj = {"name" : obj[0] , "token_uri" : obj[1] , "checksum" : obj[2], "price" : obj[3]}
+    js_obj = {"name" : obj[0] , "token_uri" : obj[1] , "checksum" : obj[2], "price" : obj[3],"comission" : obj[4]}
     return json.dumps(js_obj, indent=4)
 
 def get_holder_from_hex(hex):

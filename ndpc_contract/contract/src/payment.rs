@@ -1,10 +1,10 @@
 use core::ops::{Mul, Sub, Div};
 
 use alloc::{string::{String, ToString}, vec::Vec};
-use casper_contract::{contract_api::{runtime::{self, revert, get_caller}, 
+use casper_contract::{contract_api::{runtime::{self, revert, get_caller, get_blocktime}, 
     system::{get_purse_balance, transfer_from_purse_to_account}, storage}, 
     unwrap_or_revert::UnwrapOrRevert};
-use casper_types::{Key, ApiError, account::AccountHash, U512};
+use casper_types::{Key, ApiError, account::AccountHash, U512, BlockTime};
 use crate::{ndpc_utils::{get_ratio_verifier, verify_signature, get_latest_timestamp, set_latest_timestamp, self, get_nft_metadata}, 
     constants::{
             RUNTIME_ARG_CURRENT_PRICE_TIMESTAMP, RUNTIME_ARG_SIGNATURE, RUNTIME_ARG_APPROVED_ID, 
@@ -30,14 +30,16 @@ pub extern "C" fn buy(){
     if !verify_signature(ratio_verifier, sig, mp.clone()){
         revert(ApiError::from(Error::InvalidSignature));
     }
+    
     let m_price = mp.split(',').collect::<Vec<&str>>();
     let price_rat = m_price[0].parse::<u64>().unwrap();
-    let current_timestamp = m_price[1].parse::<u64>().unwrap();
-    let latest_timestamp = get_latest_timestamp();
-    if current_timestamp <= latest_timestamp{
+    let provided_block_height = m_price[1].parse::<u64>().unwrap();
+    //let latest_timestamp = get_latest_timestamp();
+    let latest_block_time = get_blocktime();
+    if provided_block_height <= latest_block_time.try_into().unwrap(){
         revert(ApiError::from(Error::InvalidTimestamp));
     }
-    set_latest_timestamp(current_timestamp);
+    //set_latest_timestamp(current_timestamp);
 
     //define storages we need to work with
     let owners_dict = ndpc_utils::get_named_key_by_name(NAMED_KEY_DICT_OWNERS_NAME);

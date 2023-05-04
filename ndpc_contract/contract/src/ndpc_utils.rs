@@ -87,5 +87,6 @@ pub(crate) fn get_nft_metadata(token_id : String , metadatas_dict : URef) -> ndp
     let token_uri = metadata_split[1].to_string();
     let checksum = metadata_split[2].to_string();
     let price = U256::from_dec_str(metadata_split[3]).unwrap();
-    ndpc_types::NftMetadata::new(name, token_uri, checksum, price)
+    let comission = metadata_split[4].to_string().parse().unwrap();
+    ndpc_types::NftMetadata::new(name, token_uri, checksum, price,comission)
 }

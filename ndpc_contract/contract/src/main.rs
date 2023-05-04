@@ -56,7 +56,7 @@ fn install_contract(){
     let ratio_verifier = PublicKey::from_hex(ratio_verifier_hex).unwrap();
     let entry_points = get_entrypoints();
     let named_keys = get_named_keys(time_stamp, ratio_verifier);
-    let (contract_hash , _contract_version) = storage::new_contract(entry_points, Some(named_keys) , Some(constants::CONTRACTPACKAGEHASH.to_string()), None);
+    let (contract_hash , _contract_version) = storage::new_locked_contract(entry_points, Some(named_keys) , Some(constants::CONTRACTPACKAGEHASH.to_string()), None);
     let package_hash = ContractPackageHash::new(runtime::get_key(constants::CONTRACTPACKAGEHASH).unwrap_or_revert().into_hash().unwrap_or_revert());
     let constructor_access: URef = storage::create_contract_user_group(package_hash, "constructor", 1, Default::default()).unwrap_or_revert().pop().unwrap_or_revert();
     let _: () = runtime::call_contract(contract_hash, "init", RuntimeArgs::new());
