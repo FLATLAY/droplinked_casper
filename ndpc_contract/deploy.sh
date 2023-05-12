@@ -1,1 +1,6 @@
-casper-client put-deploy -n http://95.216.44.9:7777 --chain-name casper-test --payment-amount 197420060000 -k keys/m.pem --session-path deploy/contract.wasm --session-arg "timestamp:u64='1677241273'" --session-arg "ratio_verifier:string='0144f5adf499591351807bc83490314262bd6846beee80a16269a83c9901ecec8a'" --ttl '5hr 12min'
+casper-client put-deploy -n http://89.58.52.245:7777 \
+--chain-name casper-test --payment-amount 197420060000 \
+-k keys/m.pem --session-path deploy/contract.wasm \
+--session-arg "ratio_verifier:string='0144f5adf499591351807bc83490314262bd6846beee80a16269a83c9901ecec8a'" \
+--session-arg "payment_contract:string='contract-911aae79b634e7aa3d50ca74bafb1bc889f38adf760a154de16c02841efd6bc6'" \
+--ttl "5hour"

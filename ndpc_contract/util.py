@@ -4,7 +4,7 @@ import requests
 from termcolor import colored
 
 rpc_node = "http://195.201.174.222:7777"
-contract_hash = "060a4a27e7ebb264ba366ced80824988dd2e43333f69e962c1d2e30b11e6093a"
+contract_hash = "7f2fb764e619c0143040becc8b46e1861e7b72d31f4e55cea249435fee05eb80"
 
 acc_1_name = "acc1"
 acc_1_hash = "95dcc50ad49351dd97aab4678d9926de18981ab611903c145341df252300e88a"
