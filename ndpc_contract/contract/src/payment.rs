@@ -82,14 +82,16 @@ pub extern "C" fn buy() {
     if !verify_signature(ratio_verifier, sig, mp.clone()) {
         revert(ApiError::from(Error::InvalidSignature));
     }
-    let m_price = mp.split(',').collect::<Vec<&str>>();
-    let price_rat = m_price[0].parse::<u64>().unwrap();
-    let provided_block_height = m_price[1].parse::<u64>().unwrap();
+    let signed_data = mp.split(',').collect::<Vec<&str>>();
+    let price_ratio: u64 = signed_data[0].parse::<u64>().unwrap();
+    let provided_timestamp = signed_data[1].parse::<u64>().unwrap();
+
     let latest_block_time: u64 = get_blocktime().into();
     // We will let only 2 blocks time for the transaction to happen !
-    if provided_block_height <= latest_block_time + 66000u64 {
+    if provided_timestamp <= latest_block_time + 66000u64 {
         revert(ApiError::from(Error::InvalidTimestamp));
     }
+
     //define storages we need to work with
     let (
         owners_dict,
@@ -100,7 +102,6 @@ pub extern "C" fn buy() {
         metadata_dict,
     ) = get_buy_storage();
 
-    let purse_balance = get_purse_balance(purse).unwrap_or_revert();
     let caller_string = get_caller().as_string();
     let mut approved_holder = get_approved_holder_by_id(approved_dict, approved_id);
     let token_id = approved_holder.token_id;
@@ -115,64 +116,54 @@ pub extern "C" fn buy() {
         runtime::revert(ApiError::from(Error::NotEnoughAmount));
     }
 
-    //first get the metadata from the token_id(from the metadatas dict)
-    let product_price: U512 =
-        U512::from_dec_str(token_metadata.price.to_string().as_str()).unwrap_or_default();
-    let tax_and_shipping_price = tax_price.add(shipping_price).mul(price_rat * amount); // is amount here needed ?!
+    let product_price: U512 = U512::from_dec_str(token_metadata.price.to_string().as_str())
+        .unwrap_or_default()
+        .mul(price_ratio)
+        .mul(amount)
+        .div(100u64);
 
-    let amount_to_pay = product_price.mul(amount * price_rat);
+    let purse_balance = get_purse_balance(purse).unwrap_or_revert();
+    let total_amount_to_transfer = shipping_price.add(tax_price).add(product_price);
 
-    let droplinked_share: U512 = amount_to_pay.div(100u64);
-
-    let _amount_remained = amount_to_pay.sub(droplinked_share);
-
-    let publisher_percent: U512 = token_metadata.comission.into();
-    let producer_percent: U512 = U512::from(100u64).sub(publisher_percent);
-    let producer_part = amount_to_pay
-        .mul(producer_percent)
-        .div(100u64)
-        .add(tax_and_shipping_price);
-    let publisher_part = amount_to_pay.sub(producer_part);
-
-    if purse_balance < amount_to_pay {
-        //not enough balance
+    if purse_balance < total_amount_to_transfer {
         runtime::revert(ApiError::from(Error::NotEnoughBalance));
     }
+
+    let droplinked_share: U512 = product_price.div(100u64); // 1% of the product price goes to droplinked account as a fee, load the fee amount from named keys instead of hardcoding it
+    let producer_share: U512 = total_amount_to_transfer
+        .sub(droplinked_share)
+        .mul(U512::from(100u64).sub(token_metadata.comission))
+        .div(100u64);
+    let publisher_share: U512 = total_amount_to_transfer
+        .sub(droplinked_share)
+        .sub(producer_share);
+
     //transfer to producer
-    let result_prod = transfer_from_purse_to_account(purse, producer_hash, producer_part, None);
-    if result_prod.is_err() {
-        //transfer failed
-        runtime::revert(ApiError::from(Error::TransferFailed));
-    }
+    transfer_from_purse_to_account(purse, producer_hash, producer_share, None)
+        .unwrap_or_revert_with(Error::TransferFailed);
     //transfer to publisher
-    let result_pub = transfer_from_purse_to_account(purse, publisher_hash, publisher_part, None);
-    if result_pub.is_err() {
-        //transfer failed
-        runtime::revert(ApiError::from(Error::TransferFailed));
-    }
-    //update approved holder and holder amounts
+    transfer_from_purse_to_account(purse, publisher_hash, publisher_share, None)
+        .unwrap_or_revert_with(Error::TransferFailed);
+    //transfer to droplinked
+    transfer_from_purse_to_public_key(purse, get_ratio_verifier(), droplinked_share, None)
+        .unwrap_or_revert_with(Error::TransferFailed);
+
     approved_holder.amount -= amount;
-    //update holder using approved_holder.holder_id
-    let holder_opt = storage::dictionary_get::<ndpc_types::NFTHolder>(
+
+    let mut holder: ndpc_types::NFTHolder = storage::dictionary_get::<ndpc_types::NFTHolder>(
         holders_dict,
         approved_holder.holder_id.to_string().as_str(),
     )
-    .unwrap_or_revert();
-    if holder_opt.is_none() {
-        //the holder does not exist
-        runtime::revert(ApiError::from(Error::HolderDoesentExist));
-    }
-    let mut holder: ndpc_types::NFTHolder = holder_opt.unwrap_or_revert();
+    .unwrap_or_revert_with(Error::HolderDoesentExist)
+    .unwrap_or_revert_with(Error::HolderDoesentExist);
     holder.amount -= amount;
-
     storage::dictionary_put(
         holders_dict,
         approved_holder.holder_id.to_string().as_str(),
         holder,
     );
-    //if approved holder amount is 0, remove it from publisher and producer's approved lists
+
     if approved_holder.amount == 0 {
-        //remove from publisher's approved list
         let mut publisher_approved_list =
             storage::dictionary_get::<U64list>(publishers_approved_dict, publisher_string.as_str())
                 .unwrap_or_revert()
@@ -183,8 +174,6 @@ pub extern "C" fn buy() {
             publisher_string.as_str(),
             publisher_approved_list,
         );
-        //remove from producer's approved list
-
         let mut producer_approved_list =
             storage::dictionary_get::<U64list>(producers_approved_dict, producer_string.as_str())
                 .unwrap_or_revert()
@@ -197,15 +186,12 @@ pub extern "C" fn buy() {
         );
     }
     let token_id = approved_holder.token_id;
-    //update approved holder
     storage::dictionary_put(
         approved_dict,
         approved_id.to_string().as_str(),
         approved_holder,
     );
-    //creates new nftholder and adds it to the holders dict and gets holder_id from it and adds it to callers list(if list didn't exist, create it)
     let new_holder = ndpc_types::NFTHolder::new(amount, token_id);
-    //get new holder id
     let holders_cnt_uref = ndpc_utils::get_named_key_by_name(NAMED_KEY_HOLDERSCNT);
     let mut holders_cnt: u64 = storage::read(holders_cnt_uref)
         .unwrap_or_revert()
@@ -213,13 +199,10 @@ pub extern "C" fn buy() {
     holders_cnt += 1;
     storage::write(holders_cnt_uref, holders_cnt);
     let new_holder_id = holders_cnt;
-    //add new holder to holders dict
     storage::dictionary_put(holders_dict, new_holder_id.to_string().as_str(), new_holder);
-    //add new holder id to callers list
     let caller_list_opt =
         storage::dictionary_get::<U64list>(holders_dict, &caller_string).unwrap_or_revert();
     if caller_list_opt.is_none() {
-        //the caller list does not exist
         let mut new_list = U64list::new();
         new_list.add(new_holder_id);
         storage::dictionary_put(holders_dict, &caller_string, new_list);
@@ -228,19 +211,15 @@ pub extern "C" fn buy() {
         caller_list.add(new_holder_id);
         storage::dictionary_put(holders_dict, &caller_string, caller_list);
     }
-    //get caller's tokens from owners_dict
     let caller_tokens_opt =
         storage::dictionary_get::<U64list>(owners_dict, &caller_string).unwrap_or_revert();
     if caller_tokens_opt.is_none() {
-        //the caller tokens list does not exist
         let mut new_list = U64list::new();
         new_list.add(new_holder_id);
         storage::dictionary_put(owners_dict, &caller_string, new_list);
     } else {
         let mut caller_tokens = caller_tokens_opt.unwrap_or_revert();
-        //add holder_id to caller's tokens
         caller_tokens.add(new_holder_id);
-        //update caller's tokens
         storage::dictionary_put(owners_dict, &caller_string, caller_tokens);
     }
     emit(DropLinkedEvent::Buy {
