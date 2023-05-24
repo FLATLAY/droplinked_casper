@@ -52,7 +52,7 @@ pub fn get_entrypoints() -> EntryPoints {
         ),
         Parameter::new(RUNTIME_ARG_AMOUNT.to_string(), casper_types::CLType::U64),
         Parameter::new(RUNTIME_ARG_RECIPIENT.to_string(), casper_types::CLType::Key),
-        Parameter::new(RUNTIME_ARG_PRICE.to_string(), casper_types::CLType::U256),
+        Parameter::new(RUNTIME_ARG_PRICE.to_string(), casper_types::CLType::U64),
         Parameter::new(RUNTIME_ARG_COMISSION.to_string(), casper_types::CLType::U8),
     ];
     let approve_parameters: Parameters = vec![Parameter::new(
@@ -73,6 +73,8 @@ pub fn get_entrypoints() -> EntryPoints {
             casper_types::CLType::String,
         ),
         Parameter::new(RUNTIME_ARG_SIGNATURE, casper_types::CLType::String),
+        Parameter::new(RUNTIME_ARG_SHIPPING_PRICE, casper_types::CLType::U512),
+        Parameter::new(RUNTIME_ARG_TAX_PRICE, casper_types::CLType::U512),
     ];
 
     let publish_request_parameters: Parameters = vec![

@@ -19,7 +19,7 @@ use casper_contract::contract_api::runtime::blake2b;
 use casper_types::{
     account::AccountHash,
     bytesrepr::{Error, FromBytes, ToBytes},
-    CLTyped, U256,
+    CLTyped,
 };
 const METADATA_HASH_LENGTH: usize = 32;
 
@@ -41,7 +41,7 @@ pub struct NftMetadata {
     pub name: String,
     pub token_uri: String,
     pub checksum: String,
-    pub price: U256,
+    pub price: u64,
     pub comission: u64,
 }
 // A amount and a token_id identifies a NFT
@@ -68,12 +68,12 @@ pub struct U64list {
 
 impl ToBytes for NftMetadata {
     fn to_bytes(&self) -> Result<Vec<u8>, casper_types::bytesrepr::Error> {
-        let mut result = alloc::vec::Vec::new();
-        let nft_metadata_string = format!(
-            "{},{},{},{},{}",
-            self.name, self.token_uri, self.checksum, self.price, self.comission
-        );
-        result.append(&mut nft_metadata_string.to_bytes()?);
+        let mut result = Vec::new();
+        result.append(&mut self.name.to_bytes()?);
+        result.append(&mut self.token_uri.to_bytes()?);
+        result.append(&mut self.checksum.to_bytes()?);
+        result.append(&mut self.price.to_bytes()?);
+        result.append(&mut self.comission.to_bytes()?);
         Ok(result)
     }
     fn into_bytes(self) -> Result<Vec<u8>, casper_types::bytesrepr::Error>
@@ -134,7 +134,7 @@ impl NftMetadata {
         name: String,
         token_uri: String,
         checksum: String,
-        price: U256,
+        price: u64,
         comission: u64,
     ) -> Self {
         NftMetadata {
@@ -148,7 +148,7 @@ impl NftMetadata {
     pub fn to_json(&self) -> String {
         format!("{{\"name\":\"{}\",\"token_uri\":\"{}\",\"checksum\":\"{}\",\"price\":\"{}\",\"comission\":\"{}\"}}",self.name,self.token_uri,self.checksum,self.price,self.comission)
     }
-    pub fn from_json(json: String, price: U256, comission: u64) -> Result<Self, Error> {
+    pub fn from_json(json: String, price: u64, comission: u64) -> Result<Self, Error> {
         let split = json.split('\"');
         //TODO: use another functionality to get the name, token_uri and checksum from the json (this one depends on the index of the split)
         let mut name = String::new();
@@ -280,7 +280,7 @@ impl FromBytes for ApprovedNFT {
 }
 impl CLTyped for ApprovedNFT {
     fn cl_type() -> casper_types::CLType {
-        casper_types::CLType::ByteArray(22u32)
+        casper_types::CLType::Any
     }
 }
 
@@ -299,11 +299,6 @@ impl ApprovedNFT {
             publisheraccount,
             token_id,
         }
-    }
-}
-impl Display for ApprovedNFT {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{{\"holder_id\":\"{}\",\"amount\":\"{}\",\"owneraccount\":\"{}\",\"publisheraccount\":\"{}\",\"token_id\":\"{}\"}}",self.holder_id,self.amount,self.owneraccount,self.publisheraccount,self.token_id)
     }
 }
 impl ToBytes for U64list {

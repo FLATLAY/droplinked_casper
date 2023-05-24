@@ -2,8 +2,10 @@
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeSet;
     use std::fmt::Display;
     use std::path::PathBuf;
+    use casper_contract::contract_api::runtime::blake2b;
     use casper_engine_test_support::{
         DeployItemBuilder, ExecuteRequestBuilder, InMemoryWasmTestBuilder, ARG_AMOUNT,
         DEFAULT_ACCOUNT_INITIAL_BALANCE, DEFAULT_GENESIS_CONFIG,
@@ -18,8 +20,36 @@ mod tests {
     };
     use casper_types::bytesrepr::{ToBytes, FromBytes};
     // Defining Objects needed to be used with testing contract : 
+    const METADATA_HASH_LENGTH: usize = 32;
+
+    pub trait AsStrized {
+        fn as_string(&self) -> String;
+    }
+    pub struct MetadataHash(pub [u8; METADATA_HASH_LENGTH]);
+    impl AsStrized for MetadataHash {
+        fn as_string(&self) -> String {
+            base16::encode_lower(&self.0)
+        }
+    }
     pub struct U64list{
-        pub list : Vec<u64>
+        pub list : BTreeSet<u64>
+    }
+    impl U64list {
+        pub fn new() -> Self {
+            U64list {
+                list: BTreeSet::new(),
+            }
+        }
+        pub fn remove(&mut self, value: u64) -> u64 {
+            self.list.remove(&value);
+            value
+        }
+        pub fn add(&mut self, value: u64) {
+            self.list.insert(value);
+        }
+        pub fn contains(self, value: u64) -> bool {
+            self.list.contains(&value)
+        }
     }
     impl ToBytes for U64list{
         fn to_bytes(&self) -> Result<Vec<u8>, casper_types::bytesrepr::Error> {
@@ -52,14 +82,13 @@ mod tests {
         }
     }
     pub struct ApprovedNFT {
-        pub holder_id : u64,
-        pub amount : u64,
-        pub owneraccount : AccountHash,
-        pub publisheraccount : AccountHash,
-        pub token_id : u64,
-        pub percentage : u8
-    } 
-    impl ToBytes for ApprovedNFT{
+        pub holder_id: u64,
+        pub amount: u64,
+        pub owneraccount: AccountHash,
+        pub publisheraccount: AccountHash,
+        pub token_id: u64,
+    }
+    impl ToBytes for ApprovedNFT {
         fn to_bytes(&self) -> Result<Vec<u8>, casper_types::bytesrepr::Error> {
             let mut result = Vec::new();
             result.append(&mut self.holder_id.to_bytes()?);
@@ -67,7 +96,6 @@ mod tests {
             result.append(&mut self.owneraccount.to_bytes()?);
             result.append(&mut self.publisheraccount.to_bytes()?);
             result.append(&mut self.token_id.to_bytes()?);
-            result.append(&mut self.percentage.to_bytes()?);
             Ok(result)
         }
         fn into_bytes(self) -> Result<Vec<u8>, casper_types::bytesrepr::Error>
@@ -76,34 +104,167 @@ mod tests {
         {
             self.to_bytes()
         }
-        fn serialized_length(&self) -> usize{
-            self.holder_id.serialized_length() + self.amount.serialized_length() + self.owneraccount.serialized_length() + self.publisheraccount.serialized_length() + self.token_id.serialized_length() + self.percentage.serialized_length()
+        fn serialized_length(&self) -> usize {
+            self.holder_id.serialized_length()
+                + self.amount.serialized_length()
+                + self.owneraccount.serialized_length()
+                + self.publisheraccount.serialized_length()
+                + self.token_id.serialized_length()
         }
     }
-    impl FromBytes for ApprovedNFT{
+    
+    impl FromBytes for ApprovedNFT {
         fn from_bytes(bytes: &[u8]) -> Result<(Self, &[u8]), casper_types::bytesrepr::Error> {
             let (holder_id, rem) = FromBytes::from_bytes(bytes)?;
             let (amount, rem) = FromBytes::from_bytes(rem)?;
             let (owneraccount, rem) = FromBytes::from_bytes(rem)?;
             let (publisheraccount, rem) = FromBytes::from_bytes(rem)?;
             let (token_id, rem) = FromBytes::from_bytes(rem)?;
-            let (percentage, rem) = FromBytes::from_bytes(rem)?;
-            Ok((ApprovedNFT{holder_id, amount, owneraccount, publisheraccount, token_id, percentage}, rem))
+            Ok((
+                ApprovedNFT {
+                    holder_id,
+                    amount,
+                    owneraccount,
+                    publisheraccount,
+                    token_id,
+                },
+                rem,
+            ))
         }
         fn from_vec(bytes: Vec<u8>) -> Result<(Self, Vec<u8>), casper_types::bytesrepr::Error> {
             Self::from_bytes(bytes.as_slice()).map(|(x, remainder)| (x, Vec::from(remainder)))
         }
     }
-    impl CLTyped for ApprovedNFT{
+    impl CLTyped for ApprovedNFT {
         fn cl_type() -> casper_types::CLType {
-            casper_types::CLType::ByteArray(89u32)
+            casper_types::CLType::Any
+        }
+    }
+    
+    impl ApprovedNFT {
+        pub fn new(
+            holder_id: u64,
+            amount: u64,
+            owneraccount: AccountHash,
+            publisheraccount: AccountHash,
+            token_id: u64,
+        ) -> Self {
+            ApprovedNFT {
+                holder_id,
+                amount,
+                owneraccount,
+                publisheraccount,
+                token_id,
+            }
         }
     }
     impl Display for ApprovedNFT{
         fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-            write!(f, "{{\"holder_id\":\"{}\",\"amount\":\"{}\",\"owneraccount\":\"{}\",\"publisheraccount\":\"{}\",\"token_id\":\"{}\",\"percentage\":\"{}\"}}",self.holder_id,self.amount,self.owneraccount,self.publisheraccount,self.token_id,self.percentage)
+            write!(f, "{{\"holder_id\":\"{}\",\"amount\":\"{}\",\"owneraccount\":\"{}\",\"publisheraccount\":\"{}\",\"token_id\":\"{}\"}}",self.holder_id,self.amount,self.owneraccount,self.publisheraccount,self.token_id)
         }
-    }    
+    }   
+
+    pub struct NftMetadata {
+    pub name: String,
+    pub token_uri: String,
+    pub checksum: String,
+    pub price: u64,
+    pub comission: u64,
+    }
+    impl ToBytes for NftMetadata {
+        fn to_bytes(&self) -> Result<Vec<u8>, casper_types::bytesrepr::Error> {
+            let mut result = Vec::new();
+            result.append(&mut self.name.to_bytes()?);
+            result.append(&mut self.token_uri.to_bytes()?);
+            result.append(&mut self.checksum.to_bytes()?);
+            result.append(&mut self.price.to_bytes()?);
+            result.append(&mut self.comission.to_bytes()?);
+            Ok(result)
+        }
+        fn into_bytes(self) -> Result<Vec<u8>, casper_types::bytesrepr::Error>
+        where
+            Self: Sized,
+        {
+            self.to_bytes()
+        }
+        fn serialized_length(&self) -> usize {
+            self.name.serialized_length()
+                + self.token_uri.serialized_length()
+                + self.checksum.serialized_length()
+                + self.price.serialized_length()
+                + self.comission.serialized_length()
+        }
+    }
+    
+    impl CLTyped for NftMetadata {
+        fn cl_type() -> casper_types::CLType {
+            casper_types::CLType::Any
+        }
+    }
+    
+    impl FromBytes for NftMetadata {
+        fn from_bytes(bytes: &[u8]) -> Result<(Self, &[u8]), casper_types::bytesrepr::Error> {
+            let (name, rem) = FromBytes::from_bytes(bytes)?;
+            let (token_uri, rem) = FromBytes::from_bytes(rem)?;
+            let (checksum, rem) = FromBytes::from_bytes(rem)?;
+            let (price, rem) = FromBytes::from_bytes(rem)?;
+            let (comission, rem) = FromBytes::from_bytes(rem)?;
+            Ok((
+                NftMetadata {
+                    name,
+                    token_uri,
+                    checksum,
+                    price,
+                    comission,
+                },
+                rem,
+            ))
+        }
+        fn from_vec(bytes: Vec<u8>) -> Result<(Self, Vec<u8>), casper_types::bytesrepr::Error> {
+            Self::from_bytes(bytes.as_slice()).map(|(x, remainder)| (x, Vec::from(remainder)))
+        }
+    }
+    
+    impl NftMetadata {
+        pub fn get_hash(&self) -> MetadataHash {
+            return MetadataHash(blake2b(
+                (self.name.as_str().to_owned()
+                    + self.token_uri.as_str()
+                    + self.checksum.as_str()
+                    + self.comission.to_string().as_str())
+                .as_bytes(),
+            ));
+        }
+        pub fn new(
+            name: String,
+            token_uri: String,
+            checksum: String,
+            price: u64,
+            comission: u64,
+        ) -> Self {
+            NftMetadata {
+                name,
+                token_uri,
+                checksum,
+                price,
+                comission,
+            }
+        }
+        pub fn to_json(&self) -> String {
+            format!("{{\"name\":\"{}\",\"token_uri\":\"{}\",\"checksum\":\"{}\",\"price\":\"{}\",\"comission\":\"{}\"}}",self.name,self.token_uri,self.checksum,self.price,self.comission)
+        }
+    }
+    impl Display for NftMetadata {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            write!(
+                f,
+                "{},{},{},{},{}",
+                self.name, self.token_uri, self.checksum, self.price, self.comission
+            )
+        }
+    }
+    
+
     // --------------------------------------------------------------------------------------------------------------
     
     const DEPLOYER_ACCOUNT: [u8; 32] = [6u8; 32];
@@ -156,8 +317,8 @@ mod tests {
         let session_code = PathBuf::from(CONTRACT_WASM);
         let timestamp : u64 = 1677241273;
         let session_args = runtime_args! {
-            "timestamp" => timestamp,
-            "ratio_verifier" => "0144f5adf499591351807bc83490314262bd6846beee80a16269a83c9901ecec8a".to_string()
+            "ratio_verifier" => "0144f5adf499591351807bc83490314262bd6846beee80a16269a83c9901ecec8a".to_string(),
+            "fee" => 100u64
         };
         let deploy_item = DeployItemBuilder::new()
         .with_empty_payment_bytes(runtime_args! {
@@ -178,7 +339,7 @@ mod tests {
         let contract_hash = builder
             .get_expected_account(account_addr)
             .named_keys()
-            .get("droplink_contract")
+            .get("droplinked_contract")
             .expect("must have contract hash key as part of contract creation")
             .into_hash()
             .map(ContractHash::new)
@@ -189,10 +350,11 @@ mod tests {
         // Call the Mint EntryPoint of the deployed contract, and mint a product with producer account
         let mint_amount : u64 = 100;
         let mint_recipient : Key = producer_account_addr.into();
-        let mint_price : U256 = U256::from_dec_str("100").unwrap();
         let mint_name = "Nike Shoes";
         let mint_token_uri = "bafkreibjrxjhy7evb7e5rp6sfyp6rqi2slczpgl3p2pafqhqn7xx226rii";
         let mint_checksum = "oijepriwguhjpersijf[aopcoisemriguhspiodcpsoeiruhgd";
+        let price : u64 = 200;
+        let comission : u64 = 1234;
         let mint_metadata = format!("{{\"name\" : \"{}\", \"token_uri\" : \"{}\" , \"checksum\" : \"{}\"}}", mint_name, mint_token_uri, mint_checksum).to_string();
         let contract_mint_request = ExecuteRequestBuilder::contract_call_by_hash(
             producer_account_addr,
@@ -201,8 +363,9 @@ mod tests {
             runtime_args! {
                 "amount" => mint_amount,
                 "recipient" => mint_recipient,
-                "price" => mint_price,
-                "metadata" => mint_metadata
+                "metadata" => mint_metadata,
+                "price" => price,
+                "comission" => comission
             },
         ).build();
         builder
@@ -232,15 +395,15 @@ mod tests {
             .as_cl_value()
             .expect("should be cl value")
             .clone()
-            .into_t::<String>()
-            .expect("should be string");
+            .into_t::<NftMetadata>()
+            .expect("should be NFTMetadata");
 
             // check the retreived is the same as the metadata
-        assert_eq!(meta, "Nike Shoes,bafkreibjrxjhy7evb7e5rp6sfyp6rqi2slczpgl3p2pafqhqn7xx226rii,oijepriwguhjpersijf[aopcoisemriguhspiodcpsoeiruhgd,100".to_string());
+        assert_eq!(format!("{}" , meta).to_string().as_str(), "Nike Shoes,bafkreibjrxjhy7evb7e5rp6sfyp6rqi2slczpgl3p2pafqhqn7xx226rii,oijepriwguhjpersijf[aopcoisemriguhspiodcpsoeiruhgd,200,1234");
         // --------------------------------------
 
     }
-
+ 
     #[test]
     fn publish_request_entry_point(){
         /*
@@ -297,8 +460,8 @@ mod tests {
         let session_code = PathBuf::from(CONTRACT_WASM);
         let timestamp : u64 = 1677241273;
         let session_args = runtime_args! {
-            "timestamp" => timestamp,
-            "ratio_verifier" => "0144f5adf499591351807bc83490314262bd6846beee80a16269a83c9901ecec8a".to_string()
+            "ratio_verifier" => "0144f5adf499591351807bc83490314262bd6846beee80a16269a83c9901ecec8a".to_string(),
+            "fee" => 100u64
         };
         let deploy_item = DeployItemBuilder::new()
         .with_empty_payment_bytes(runtime_args! {
@@ -319,7 +482,7 @@ mod tests {
         let contract_hash = builder
             .get_expected_account(account_addr)
             .named_keys()
-            .get("droplink_contract")
+            .get("droplinked_contract")
             .expect("must have contract hash key as part of contract creation")
             .into_hash()
             .map(ContractHash::new)
@@ -329,12 +492,14 @@ mod tests {
         let contract : Contract = builder.get_contract(contract_hash).unwrap();
         
         // Call the Mint EntryPoint of the deployed contract, and mint a product with producer account
-        let mint_amount : u64 = 2000;
+        // Call the Mint EntryPoint of the deployed contract, and mint a product with producer account
+        let mint_amount : u64 = 100;
         let mint_recipient : Key = producer_account_addr.into();
-        let mint_price : U256 = U256::from_dec_str("100").unwrap();
         let mint_name = "Nike Shoes";
         let mint_token_uri = "bafkreibjrxjhy7evb7e5rp6sfyp6rqi2slczpgl3p2pafqhqn7xx226rii";
         let mint_checksum = "oijepriwguhjpersijf[aopcoisemriguhspiodcpsoeiruhgd";
+        let price : u64 = 200;
+        let comission : u64 = 1234;
         let mint_metadata = format!("{{\"name\" : \"{}\", \"token_uri\" : \"{}\" , \"checksum\" : \"{}\"}}", mint_name, mint_token_uri, mint_checksum).to_string();
         let contract_mint_request = ExecuteRequestBuilder::contract_call_by_hash(
             producer_account_addr,
@@ -343,8 +508,9 @@ mod tests {
             runtime_args! {
                 "amount" => mint_amount,
                 "recipient" => mint_recipient,
-                "price" => mint_price,
-                "metadata" => mint_metadata
+                "metadata" => mint_metadata,
+                "price" => price,
+                "comission" => comission
             },
         ).build();
         builder
@@ -356,7 +522,6 @@ mod tests {
         let publish_prod_acc : Key = producer_account_addr.into();
         let publish_amount : u64 = 10;
         let publish_holder_id : u64 = 1;
-        let publish_comission : u8 = 23;
         // Do the publish request to the producer
         let contract_publish_request = ExecuteRequestBuilder::contract_call_by_hash(
             publisher_account_addr,
@@ -366,7 +531,6 @@ mod tests {
                 "producer-account" => publish_prod_acc,
                 "amount" => publish_amount,
                 "holder_id" => publish_holder_id,
-                "comission" => publish_comission
             }
         ).build();
         builder
@@ -387,19 +551,9 @@ mod tests {
             .into_t::<u64>()
             .expect("should be u64.");
         assert_eq!(requests_cnt, 1u64);
-
-        let request = builder
-            .query_dictionary_item(None, requests_dict_uref, "1")
-            .expect("should exist dict")
-            .as_cl_value()
-            .expect("should be cl value")
-            .clone()
-            .into_t::<String>()
-            .expect("should be string");
-        assert_eq!(request ,"1,10,23,3d5de8c609159a0954e773dd686fb7724428316cb30e00bdc899976127747f55,105b69f2d74a211a6cb337cba6751a8f15cc7b44b7c65329c29731b67e1ac047".to_string());
         // -----------------------------------------
     }
-
+        
     #[test]
     fn cancel_request_entry_point(){
         /*
@@ -456,8 +610,8 @@ mod tests {
         let session_code = PathBuf::from(CONTRACT_WASM);
         let timestamp : u64 = 1677241273;
         let session_args = runtime_args! {
-            "timestamp" => timestamp,
-            "ratio_verifier" => "0144f5adf499591351807bc83490314262bd6846beee80a16269a83c9901ecec8a".to_string()
+            "ratio_verifier" => "0144f5adf499591351807bc83490314262bd6846beee80a16269a83c9901ecec8a".to_string(),
+            "fee" => 100u64
         };
         let deploy_item = DeployItemBuilder::new()
         .with_empty_payment_bytes(runtime_args! {
@@ -478,7 +632,7 @@ mod tests {
         let contract_hash = builder
             .get_expected_account(account_addr)
             .named_keys()
-            .get("droplink_contract")
+            .get("droplinked_contract")
             .expect("must have contract hash key as part of contract creation")
             .into_hash()
             .map(ContractHash::new)
@@ -488,12 +642,13 @@ mod tests {
         let contract : Contract = builder.get_contract(contract_hash).unwrap();
         
         // Call the Mint EntryPoint of the deployed contract, and mint a product with producer account
-        let mint_amount : u64 = 2000;
+        let mint_amount : u64 = 100;
         let mint_recipient : Key = producer_account_addr.into();
-        let mint_price : U256 = U256::from_dec_str("100").unwrap();
         let mint_name = "Nike Shoes";
         let mint_token_uri = "bafkreibjrxjhy7evb7e5rp6sfyp6rqi2slczpgl3p2pafqhqn7xx226rii";
         let mint_checksum = "oijepriwguhjpersijf[aopcoisemriguhspiodcpsoeiruhgd";
+        let price : u64 = 200;
+        let comission : u64 = 1234;
         let mint_metadata = format!("{{\"name\" : \"{}\", \"token_uri\" : \"{}\" , \"checksum\" : \"{}\"}}", mint_name, mint_token_uri, mint_checksum).to_string();
         let contract_mint_request = ExecuteRequestBuilder::contract_call_by_hash(
             producer_account_addr,
@@ -502,8 +657,9 @@ mod tests {
             runtime_args! {
                 "amount" => mint_amount,
                 "recipient" => mint_recipient,
-                "price" => mint_price,
-                "metadata" => mint_metadata
+                "metadata" => mint_metadata,
+                "price" => price,
+                "comission" => comission
             },
         ).build();
         builder
@@ -515,7 +671,6 @@ mod tests {
         let publish_prod_acc : Key = producer_account_addr.into();
         let publish_amount : u64 = 10;
         let publish_holder_id : u64 = 1;
-        let publish_comission : u8 = 23;
         // Do the publish request to the producer
         let contract_publish_request = ExecuteRequestBuilder::contract_call_by_hash(
             publisher_account_addr,
@@ -525,24 +680,12 @@ mod tests {
                 "producer-account" => publish_prod_acc,
                 "amount" => publish_amount,
                 "holder_id" => publish_holder_id,
-                "comission" => publish_comission
             }
         ).build();
         builder
             .exec(contract_publish_request)
             .expect_success()
             .commit();
-
-        let producer_requests_dict_uref = contract.named_keys().get("producer_requests").unwrap().into_uref().unwrap();
-        let requests_list : U64list = builder
-            .query_dictionary_item(None, producer_requests_dict_uref, producer_account_addr.to_string().as_str())
-            .expect("should exist dict")
-            .as_cl_value()
-            .expect("should be cl value")
-            .clone()
-            .into_t::<U64list>()
-            .expect("should be U64list");
-        assert_eq!(requests_list.list.len() , 1usize);
         // --------------------------------------
         // Do the cancel_request
         let cancel_request_id : u64 = 1;
@@ -559,6 +702,7 @@ mod tests {
             .expect_success()
             .commit();
         // -----------------------------------------
+        let producer_requests_dict_uref = contract.named_keys().get("producer_requests").unwrap().into_uref().unwrap();
         // Now the requests_cnt should be reduced by 1 so it should be 0 again
         let requests_list : U64list = builder
             .query_dictionary_item(None, producer_requests_dict_uref, producer_account_addr.to_string().as_str())
@@ -570,7 +714,6 @@ mod tests {
             .expect("should be U64list");
         assert_eq!(requests_list.list.len() , 0usize);
     }
-
     #[test]
     fn approve_entry_point(){
         /* 
@@ -626,9 +769,8 @@ mod tests {
         
         // Deploying the contract
         let session_code = PathBuf::from(CONTRACT_WASM);
-        let timestamp : u64 = 1677241273;
         let session_args = runtime_args! {
-            "timestamp" => timestamp,
+            "fee" => 100u64,
             "ratio_verifier" => "0144f5adf499591351807bc83490314262bd6846beee80a16269a83c9901ecec8a".to_string()
         };
         let deploy_item = DeployItemBuilder::new()
@@ -650,7 +792,7 @@ mod tests {
         let contract_hash = builder
             .get_expected_account(account_addr)
             .named_keys()
-            .get("droplink_contract")
+            .get("droplinked_contract")
             .expect("must have contract hash key as part of contract creation")
             .into_hash()
             .map(ContractHash::new)
@@ -660,12 +802,13 @@ mod tests {
         let contract : Contract = builder.get_contract(contract_hash).unwrap();
         
         // Call the Mint EntryPoint of the deployed contract, and mint a product with producer account
-        let mint_amount : u64 = 2000;
+        let mint_amount : u64 = 100;
         let mint_recipient : Key = producer_account_addr.into();
-        let mint_price : U256 = U256::from_dec_str("100").unwrap();
         let mint_name = "Nike Shoes";
         let mint_token_uri = "bafkreibjrxjhy7evb7e5rp6sfyp6rqi2slczpgl3p2pafqhqn7xx226rii";
         let mint_checksum = "oijepriwguhjpersijf[aopcoisemriguhspiodcpsoeiruhgd";
+        let price : u64 = 200;
+        let comission : u64 = 1234;
         let mint_metadata = format!("{{\"name\" : \"{}\", \"token_uri\" : \"{}\" , \"checksum\" : \"{}\"}}", mint_name, mint_token_uri, mint_checksum).to_string();
         let contract_mint_request = ExecuteRequestBuilder::contract_call_by_hash(
             producer_account_addr,
@@ -674,8 +817,9 @@ mod tests {
             runtime_args! {
                 "amount" => mint_amount,
                 "recipient" => mint_recipient,
-                "price" => mint_price,
-                "metadata" => mint_metadata
+                "metadata" => mint_metadata,
+                "price" => price,
+                "comission" => comission
             },
         ).build();
         builder
@@ -688,7 +832,6 @@ mod tests {
         let publish_prod_acc : Key = producer_account_addr.into();
         let publish_amount : u64 = 10;
         let publish_holder_id : u64 = 1;
-        let publish_comission : u8 = 23;
         let contract_publish_request = ExecuteRequestBuilder::contract_call_by_hash(
             publisher_account_addr,
             contract_hash,
@@ -697,7 +840,6 @@ mod tests {
                 "producer-account" => publish_prod_acc,
                 "amount" => publish_amount,
                 "holder_id" => publish_holder_id,
-                "comission" => publish_comission
             }
         ).build();
         builder
@@ -743,10 +885,10 @@ mod tests {
             .into_t::<ApprovedNFT>()
             .expect("should be U64list");
 
-        // If you want to change the data of keys on the top of the file, you should edit account hashes below on you own
-        assert_eq!(format!("{}" , approved_nft).to_string() , "{\"holder_id\":\"1\",\"amount\":\"10\",\"owneraccount\":\"3d5de8c609159a0954e773dd686fb7724428316cb30e00bdc899976127747f55\",\"publisheraccount\":\"105b69f2d74a211a6cb337cba6751a8f15cc7b44b7c65329c29731b67e1ac047\",\"token_id\":\"1\",\"percentage\":\"23\"}");
+        // If you want to change the data of keys on the top of the file, you should edit account hashes below on your own
+        assert_eq!(format!("{}" , approved_nft).to_string() , "{\"holder_id\":\"1\",\"amount\":\"10\",\"owneraccount\":\"3d5de8c609159a0954e773dd686fb7724428316cb30e00bdc899976127747f55\",\"publisheraccount\":\"105b69f2d74a211a6cb337cba6751a8f15cc7b44b7c65329c29731b67e1ac047\",\"token_id\":\"1\"}");
     }
-
+    
     #[test]
     fn disapprove_entry_point(){
         /*
@@ -802,9 +944,8 @@ mod tests {
         
         // Deploying the contract
         let session_code = PathBuf::from(CONTRACT_WASM);
-        let timestamp : u64 = 1677241273;
         let session_args = runtime_args! {
-            "timestamp" => timestamp,
+            "fee" => 100u64,
             "ratio_verifier" => "0144f5adf499591351807bc83490314262bd6846beee80a16269a83c9901ecec8a".to_string()
         };
         let deploy_item = DeployItemBuilder::new()
@@ -826,7 +967,7 @@ mod tests {
         let contract_hash = builder
             .get_expected_account(account_addr)
             .named_keys()
-            .get("droplink_contract")
+            .get("droplinked_contract")
             .expect("must have contract hash key as part of contract creation")
             .into_hash()
             .map(ContractHash::new)
@@ -836,12 +977,13 @@ mod tests {
         let contract : Contract = builder.get_contract(contract_hash).unwrap();
         
         // Call the Mint EntryPoint of the deployed contract, and mint a product with producer account
-        let mint_amount : u64 = 2000;
+        let mint_amount : u64 = 100;
         let mint_recipient : Key = producer_account_addr.into();
-        let mint_price : U256 = U256::from_dec_str("100").unwrap();
         let mint_name = "Nike Shoes";
         let mint_token_uri = "bafkreibjrxjhy7evb7e5rp6sfyp6rqi2slczpgl3p2pafqhqn7xx226rii";
         let mint_checksum = "oijepriwguhjpersijf[aopcoisemriguhspiodcpsoeiruhgd";
+        let price : u64 = 200;
+        let comission : u64 = 1234;
         let mint_metadata = format!("{{\"name\" : \"{}\", \"token_uri\" : \"{}\" , \"checksum\" : \"{}\"}}", mint_name, mint_token_uri, mint_checksum).to_string();
         let contract_mint_request = ExecuteRequestBuilder::contract_call_by_hash(
             producer_account_addr,
@@ -850,8 +992,9 @@ mod tests {
             runtime_args! {
                 "amount" => mint_amount,
                 "recipient" => mint_recipient,
-                "price" => mint_price,
-                "metadata" => mint_metadata
+                "metadata" => mint_metadata,
+                "price" => price,
+                "comission" => comission
             },
         ).build();
         builder
@@ -864,7 +1007,6 @@ mod tests {
         let publish_prod_acc : Key = producer_account_addr.into();
         let publish_amount : u64 = 10;
         let publish_holder_id : u64 = 1;
-        let publish_comission : u8 = 23;
         let contract_publish_request = ExecuteRequestBuilder::contract_call_by_hash(
             publisher_account_addr,
             contract_hash,
@@ -873,7 +1015,6 @@ mod tests {
                 "producer-account" => publish_prod_acc,
                 "amount" => publish_amount,
                 "holder_id" => publish_holder_id,
-                "comission" => publish_comission
             }
         ).build();
         builder

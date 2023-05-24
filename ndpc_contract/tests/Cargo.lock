@@ -1273,6 +1273,7 @@ dependencies = [
 name = "tests"
 version = "0.1.0"
 dependencies = [
+ "base16",
  "casper-contract",
  "casper-engine-test-support",
  "casper-execution-engine",

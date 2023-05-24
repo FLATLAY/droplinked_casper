@@ -63,7 +63,7 @@ pub extern "C" fn approve() {
 
     let spender_acc: AccountHash = request_obj.publisher;
     let spender: String = request_obj.publisher.as_string();
-
+    
     let caller_account = runtime::get_caller();
     let caller: String = caller_account.as_string();
 
@@ -86,9 +86,9 @@ pub extern "C" fn approve() {
         spender_acc,
         holder.token_id,
     );
-
+    
     storage::dictionary_put(holders_dict, holder_id.to_string().as_str(), holder);
-
+    
     //get approved_cnt, increment it and save it
     let approved_cnt: u64 = storage::read(approved_cnt_uref)
         .unwrap_or_revert()
@@ -121,7 +121,7 @@ pub extern "C" fn approve() {
             publisher_approved_holders,
         );
     }
-
+    
     //add the approved holder to the producers approved dictionary
     let producer_approved_holders_opt =
         storage::dictionary_get(producers_approved_dict, &caller).unwrap_or_revert();
@@ -322,6 +322,7 @@ pub extern "C" fn publish_request() {
     };
     pub_reqs.list.insert(request_id);
     storage::dictionary_put(pub_reqs_dict, caller.to_string().as_str(), pub_reqs);
+    
     let ret = CLValue::from_t(request_id).unwrap_or_revert();
     emit(DropLinkedEvent::PublishRequest {
         owner: producer_account_hash,

@@ -51,6 +51,7 @@ enum Error {
     KeyNotFound = 22,
     FeeNotFound = 23,
     KeyNotUref = 24,
+    RequestDoesntExist = 25,
 }
 impl From<Error> for ApiError {
     fn from(error: Error) -> Self {

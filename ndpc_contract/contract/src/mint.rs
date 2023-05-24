@@ -17,9 +17,9 @@ use casper_contract::{
     },
     unwrap_or_revert::UnwrapOrRevert,
 };
-use casper_types::{account::AccountHash, ApiError, CLValue, Key, URef, U256};
+use casper_types::{account::AccountHash, ApiError, CLValue, Key, URef};
 
-fn get_mint_runtime_args() -> (String, U256, u64, String, AccountHash, u64) {
+fn get_mint_runtime_args() -> (String, u64, u64, String, AccountHash, u64) {
     let reciver_acc = get_named_arg::<Key>(RUNTIME_ARG_RECIPIENT)
         .into_account()
         .unwrap_or_revert_with(ApiError::from(Error::NotAccountHash));
@@ -44,7 +44,7 @@ fn get_mint_dicts() -> (URef, URef, URef, URef, URef, URef) {
     )
 }
 
-fn generate_metata(metadata: String, price: U256, comission: u64) -> (NftMetadata, String) {
+fn generate_metata(metadata: String, price: u64, comission: u64) -> (NftMetadata, String) {
     let generated_metadata_res = NftMetadata::from_json(metadata, price, comission);
     let generated_metadata =
         generated_metadata_res.unwrap_or_revert_with(Error::MintMetadataNotValid);
@@ -173,15 +173,17 @@ pub extern "C" fn mint() {
             total_supply,
         );
     }
-    // return the token_id
-    let ret_val = CLValue::from_t(token_id).unwrap_or_revert();
     emit(DropLinkedEvent::Mint {
         recipient: reciver_acc,
         token_id,
         holder_id,
         amount,
         comission,
-        price: price.as_u64(),
+        price,
     });
+
+    // return the token_id
+    let ret_val = CLValue::from_t(token_id).unwrap_or_revert();
     runtime::ret(ret_val);
+    
 }

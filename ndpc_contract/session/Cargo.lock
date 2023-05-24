@@ -65,9 +65,9 @@ checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "casper-contract"
-version = "1.4.4"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "790b76807d64788758208757b0a17970bf756cb7c392f55b1a22021a34f95991"
+checksum = "ea8cbb5f40b9d5a89c9fe49e57b911a3fa30d23f3492ba34744fdafb5807907a"
 dependencies = [
  "casper-types",
  "hex_fmt",
@@ -76,9 +76,9 @@ dependencies = [
 
 [[package]]
 name = "casper-types"
-version = "1.5.0"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a13e82a13d1784104fd021a38da56c69da94e84b26b03c2cf3d8da3895a16c8c"
+checksum = "0e40fa172ff619ae56b2d3c6feb3e941a07fc64c0c73b913621ab0b2808cad80"
 dependencies = [
  "base16",
  "base64",
@@ -116,11 +116,8 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "contract"
 version = "0.1.0"
 dependencies = [
- "base16",
  "casper-contract",
  "casper-types",
- "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -305,6 +302,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "ecdsa",
  "elliptic-curve",
+ "sha2",
 ]
 
 [[package]]

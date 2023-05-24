@@ -8,6 +8,7 @@ casper-contract = { version = "1.4.4", default-features = false, features = ["te
 casper-engine-test-support = { version = "2.2.0", features = ["test-support"] }
 casper-execution-engine = "2.0.1"
 casper-types = "1.5.0"
+base16 = { version = "0.2", default-features = false, features = ["alloc"] }
 
 [[bin]]
 name = "integration-tests"
