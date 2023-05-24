@@ -42,14 +42,25 @@ where:
  
  You should see the following result in your terminal : 
  ```
- running 5 tests
+running 16 tests
+test tests::install_contract_with_error ... ok
+test tests::install_contract_test ... ok
 test tests::mint_entrypoint ... ok
-test tests::publish_request_entry_point ... ok
-test tests::cancel_request_entry_point ... ok
+test tests::approve_entry_point_with_error ... ok
+test tests::cancel_request_entry_point_with_auth_error ... ok
+test tests::approve_entry_point_with_auth_error ... ok
+test tests::cancel_request_entry_point_with_error ... ok
 test tests::approve_entry_point ... ok
+test tests::cancel_request_entry_point ... ok
+test tests::disapprove_entry_point_auth_error ... ok
 test tests::disapprove_entry_point ... ok
+test tests::disapprove_entry_point_error_amount ... ok
+test tests::disapprove_entry_point_error_approved_id ... ok
+test tests::mint_product_with_error ... ok
+test tests::publish_request_with_error ... ok
+test tests::publish_request_entry_point ... ok
 
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.03s
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.32s
 ```
 Also you can change the code in tests/src dir, and add your tests, or edit this tests. Currently there is a test method, for each entrypoint of contract (except buy method which needs a more complex testing), which are : `Mint`, `Publish_request`, `approve`, `cancel_request`, `disapprove`
 
