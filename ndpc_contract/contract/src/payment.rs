@@ -1,19 +1,19 @@
-use core::ops::{Add, Div, Mul, Sub};
+use core::ops::{Add, Sub};
 
 use crate::{
     constants::{
         NAMED_KEY_DICT_APPROVED_NAME, NAMED_KEY_DICT_HOLDERS_NAME, NAMED_KEY_DICT_METADATAS_NAME,
         NAMED_KEY_DICT_OWNERS_NAME, NAMED_KEY_DICT_PRODAPPROVED_NAME,
-        NAMED_KEY_DICT_PUBAPPROVED_NAME, NAMED_KEY_HOLDERSCNT, RUNTIME_ARG_AMOUNT,
+        NAMED_KEY_DICT_PUBAPPROVED_NAME, RUNTIME_ARG_AMOUNT,
         RUNTIME_ARG_APPROVED_ID, RUNTIME_ARG_CURRENT_PRICE_TIMESTAMP, RUNTIME_ARG_PURSE_ADDR,
         RUNTIME_ARG_RECIPIENT, RUNTIME_ARG_SHIPPING_PRICE, RUNTIME_ARG_SIGNATURE,
         RUNTIME_ARG_TAX_PRICE, RUNTIME_PRODUCT_PRICE,
     },
     event::{emit, DropLinkedEvent},
-    ndpc_types::{self, AsStrized, U64list},
+    ndpc_types::{self, AsStrized},
     ndpc_utils::{
         self, calculate_payment, get_approved_holder_by_id, get_droplinked_account,
-        get_holder_by_id, get_nft_metadata, get_ratio_verifier, verify_signature, get_fee,
+        get_nft_metadata, get_ratio_verifier, verify_signature, get_fee,
     },
     Error,
 };
@@ -98,11 +98,11 @@ pub extern "C" fn buy() {
     }
 
     let (
-        owners_dict,
+        _owners_dict,
         approved_dict,
-        publishers_approved_dict,
-        producers_approved_dict,
-        holders_dict,
+        _publishers_approved_dict,
+        _producers_approved_dict,
+        _holders_dict,
         metadata_dict,
     ) = get_buy_storage();
     
@@ -110,20 +110,20 @@ pub extern "C" fn buy() {
     
     
     
-    let mut approved_holder: ndpc_types::ApprovedNFT = get_approved_holder_by_id(approved_dict, approved_id); //1)
-    let token_id = approved_holder.token_id;
+    let mut _approved_holder: ndpc_types::ApprovedNFT = get_approved_holder_by_id(approved_dict, approved_id); //1)
+    let token_id = _approved_holder.token_id;
 
     
     
     let token_metadata = get_nft_metadata(token_id.to_string(), metadata_dict); //2)
     
-    let producer_hash: AccountHash = approved_holder.owneraccount;
-    let publisher_hash: AccountHash = approved_holder.publisheraccount;
+    let producer_hash: AccountHash = _approved_holder.owneraccount;
+    let publisher_hash: AccountHash = _approved_holder.publisheraccount;
     let producer_string: String = producer_hash.as_string();
     let publisher_string: String = publisher_hash.as_string();
 
     
-    if amount > approved_holder.amount {
+    if amount > _approved_holder.amount {
         runtime::revert(ApiError::from(Error::NotEnoughAmount));
     }
     

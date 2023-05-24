@@ -8,7 +8,7 @@ pub mod mint;
 pub mod ndpc_types;
 mod ndpc_utils;
 pub mod payment;
-
+#[allow(unused_imports)]
 #[cfg(not(target_arch = "wasm32"))]
 compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
 
@@ -33,10 +33,10 @@ enum Error {
     ApprovedHolderDoesentExist = 4,
     NotEnoughAmount = 5,
     MetadataDoesentExist = 6,
-    NotEnoughBalance = 7,
+    _NotEnoughBalance = 7,
     TransferFailed = 8,
     HolderDoesentExist = 9,
-    ApprovedListDoesentExist = 10,
+    _ApprovedListDoesentExist = 10,
     EmptyOwnerShipList = 11,
     PublisherHasNoApprovedHolders = 12,
     ProducerHasNoApprovedHolders = 13,

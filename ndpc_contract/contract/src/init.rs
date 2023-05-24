@@ -1,11 +1,10 @@
-use crate::{constants::{
+use crate::constants::{
     NAMED_KEY_DICT_APPROVED_NAME, NAMED_KEY_DICT_HOLDERS_NAME, NAMED_KEY_DICT_METADATAS_NAME,
     NAMED_KEY_DICT_OWNERS_NAME, NAMED_KEY_DICT_PRODAPPROVED_NAME, NAMED_KEY_DICT_PROD_REQS,
     NAMED_KEY_DICT_PUBAPPROVED_NAME, NAMED_KEY_DICT_PUB_REQS, NAMED_KEY_DICT_REQ_OBJ,
-    NAMED_KEY_DICT_TOKEN_ID_BY_HASH_NAME, NAMED_KEY_DICT_TOTAL_SUPPLY, NAMED_KEY_HOLDERSCNT, NAMED_KEY_APPROVED_CNT, NAMED_KEY_REQ_CNT,
-}, ndpc_types::{NftMetadata, NFTHolder, PublishRequest, AsStrized, U64list, ApprovedNFT}, ndpc_utils};
-use alloc::{string::ToString, borrow::ToOwned};
-use casper_contract::{contract_api::{storage, runtime::{get_caller, self}}, unwrap_or_revert::UnwrapOrRevert};
+    NAMED_KEY_DICT_TOKEN_ID_BY_HASH_NAME, NAMED_KEY_DICT_TOTAL_SUPPLY,
+};
+use casper_contract::{contract_api::{storage}, unwrap_or_revert::UnwrapOrRevert};
 
 #[no_mangle]
 pub extern "C" fn init() {
