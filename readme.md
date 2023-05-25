@@ -19,7 +19,12 @@ cd contract && cargo build --release --target wasm32-unknown-unknown
 wasm-strip contract/target/wasm32-unknown-unknown/release/contract.wasm 2>/dev/null | true
 cp contract/target/wasm32-unknown-unknown/release/contract.wasm deploy/contract.wasm
 ```
-
+### Docs
+Run :
+```
+make doc
+```
+in the _ndpc_contract_ folder, in order to make the rust documentations of the contract 
 
 ### Deploy
 In deploy part, we should send this WASM file, to casper nodes, to deploy them on the chain,
