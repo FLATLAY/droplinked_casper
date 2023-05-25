@@ -7,6 +7,7 @@ use casper_contract::contract_api::storage;
 use casper_types::{account::AccountHash, URef, U512};
 
 use crate::{constants, ndpc_utils::contract_package_hash};
+/// Droplinked Events, Including Mint(Record), PublishRequest, ApprovedPublish, DisapprovedPublish, CancelRequest, Buy, and Payment
 pub enum DropLinkedEvent {
     Mint {
         recipient: AccountHash,
@@ -44,6 +45,10 @@ pub enum DropLinkedEvent {
     },
 }
 
+/// Emits the given event into the urefs that contract creates, and would be detected by droplinked's Qserver when the transaction is done
+/// 
+/// It gets a DroplinkedEvent, and depending on its type, puts some key-value variables into the urefs that contract creates, these then 
+/// woule be detected by droplinked's Qserver (using the contractpackagehash on each dictionary)
 pub fn emit(event: DropLinkedEvent) {
     let mut events = Vec::new();
     let package = contract_package_hash();

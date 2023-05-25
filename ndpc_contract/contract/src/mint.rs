@@ -19,6 +19,9 @@ use casper_contract::{
 };
 use casper_types::{account::AccountHash, ApiError, CLValue, Key, URef};
 
+/// Returns the runtime args needed for mint entrypoint to run
+/// 
+/// It gets `Metadata`, `price`, `amount` and `recipient` from runtime args, and returns them as a tuple : (String , u64, u64, String , AccountHash, u64)
 fn get_mint_runtime_args() -> (String, u64, u64, String, AccountHash, u64) {
     let reciver_acc = get_named_arg::<Key>(RUNTIME_ARG_RECIPIENT)
         .into_account()
@@ -33,6 +36,10 @@ fn get_mint_runtime_args() -> (String, u64, u64, String, AccountHash, u64) {
         get_named_arg("comission"),
     )
 }
+
+/// Gets the dicts needed to be worked with in mint entrypoint
+/// 
+/// The dicts are : `NAMED_KEY_DICT_TOKEN_ID_BY_HASH_NAME`, `NAMED_KEY_DICT_METADATAS_NAME`, `NAMED_KEY_DICT_HOLDERS_NAME`, `NAMED_KEY_HOLDERSCNT`, `NAMED_KEY_DICT_OWNERS_NAME`, `NAMED_KEY_TOKENSCNT`
 fn get_mint_dicts() -> (URef, URef, URef, URef, URef, URef) {
     (
         get_named_key_by_name(NAMED_KEY_DICT_TOKEN_ID_BY_HASH_NAME),
@@ -44,6 +51,10 @@ fn get_mint_dicts() -> (URef, URef, URef, URef, URef, URef) {
     )
 }
 
+/// Generates metadata from given metadadata string, price and comission
+/// 
+/// # Returns
+/// (NftMetadata : the NftMetadata object built with inputs, String : metadataHash)
 fn generate_metata(metadata: String, price: u64, comission: u64) -> (NftMetadata, String) {
     let generated_metadata_res = NftMetadata::from_json(metadata, price, comission);
     let generated_metadata =
@@ -52,6 +63,10 @@ fn generate_metata(metadata: String, price: u64, comission: u64) -> (NftMetadata
     (generated_metadata, metadata_hash)
 }
 
+/// Gets a new token_id from the contract state and returns is as a u64
+/// 
+/// It will get `tokenid_by_hash_uref`, `metadata_hash`, `tokens_cnt_uref`, and firstly look into the tokenid_by_hash_uref dict, if it could find the metadatahash in it, it would return the token_id of that nft
+/// Otherwise, it would get the tokens_cnt, and use tokens_cnt+1 as new token_id , and returns it. Also modifies the tokens_cnt to tokens_cnt+1 
 fn get_new_token_id(
     tokenid_by_hash_uref: URef,
     metadata_hash: String,
@@ -76,6 +91,12 @@ fn get_new_token_id(
     _token_id_final
 }
 
+
+/// Gets a holder_id by adding a new holder
+/// 
+/// Adds the minted NFT to the holders list of the owner account, It would search for the holder_id that corresponds with the token_id, and if it found it,
+/// It would modify the amount of it and add the `amount` to it. If it failed to find the holder_id , it would use holders_cnt+1 as new holder_id, and modify holders_cnt to holders_cnt+1, and 
+/// finally it would return the final_holder_id (the new created one or existing one based on the situation).
 fn add_nft_holder(
     holders_cnt_uref: URef,
     owners_dict_uref: URef,
@@ -125,6 +146,13 @@ fn add_nft_holder(
     holder_id_final
 }
 
+/// Mint Entrypoint of the contract
+/// 
+/// Gets runtime args from input, creates or gets the metadata from contract state, creates or modifies a holder_id and adds the amount to them
+/// # Returns
+/// `token_id` : `u64`
+/// # Emits : 
+/// `DropLinkedEvent::Mint`
 #[no_mangle]
 pub extern "C" fn mint() {
     // get the runtime args

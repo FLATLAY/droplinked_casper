@@ -34,6 +34,7 @@ use casper_contract::{
 };
 use casper_types::{account::AccountHash, ApiError, AsymmetricType, Key, PublicKey, U512};
 
+/// Buy Entrypoint's needed dicts
 fn get_buy_storage() -> (
     casper_types::URef,
     casper_types::URef,
@@ -52,6 +53,7 @@ fn get_buy_storage() -> (
     )
 }
 
+/// Buy entrypoint's runtime args
 fn get_buy_runtime_args() -> (
     alloc::string::String,
     alloc::string::String,
@@ -70,6 +72,11 @@ fn get_buy_runtime_args() -> (
     )
 }
 
+/// Buy entrypoint of the droplinked contract
+/// 
+/// Gets the ratio verifier, gets the incoming purse, splits its tokens to the producer, publisher and droplinked based on the fee and comission and shipping and tax, and ratio of casper/usd
+/// Verifies the signature of the droplinked account on the ratio, and checks the time provided to it (to prevent time based ratio attacks)
+/// Transfers the calculated amounts to corresponding accounts, and transfers the NFT
 #[no_mangle]
 pub extern "C" fn buy() {
     let ratio_verifier = get_ratio_verifier();
@@ -172,6 +179,9 @@ pub extern "C" fn buy() {
     
 }
 
+/// Direct buy is used to proxy the casper transfers through droplinked's contract, to transfer droplinked's share to its account, and transfer the rest of it to the producer
+/// 
+/// fee% of the product price should go to droplinked's account, and the rest of it (tax price + shipping price + rest of the product price) to the producer's account
 #[no_mangle]
 pub extern "C" fn direct_pay() {
     let product_price: U512 = get_named_arg(RUNTIME_PRODUCT_PRICE);

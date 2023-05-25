@@ -30,3 +30,6 @@ lint: clippy
 clean:
 	cd contract && cargo clean
 	rm -rf tests/wasm
+
+doc:
+	cd contract && cargo doc --open

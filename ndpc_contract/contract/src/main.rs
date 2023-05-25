@@ -24,6 +24,8 @@ use casper_contract::{
 use casper_types::{ApiError, AsymmetricType, ContractPackageHash, PublicKey, RuntimeArgs, URef};
 use constants::{get_entrypoints, get_named_keys, NAMED_KEY_RATIO_VERIFIER};
 
+
+/// All the different User error types for the contract
 #[repr(u16)]
 enum Error {
     NotAccountHash = 0,
@@ -59,6 +61,11 @@ impl From<Error> for ApiError {
     }
 }
 
+/// Installs the droplinked_contract with the given session args and calls the init function of the contract
+/// 
+/// It'll get fee and ratio_verifier publicKey (the account which verifies the ratio of cspr/usd) as input, install droplinked's contract on testnet, and call it's init entrypoint
+/// It stores the contract hash and contract-package hash into the deployer's NAMEDKEYS, Creates a constructor group, which are the only group who can call the init function, adds the deployer to them,
+/// Calls the init function and then removes the deployer from that group so that the init method would never be called again!
 fn install_contract() {
     let fee: u64 = runtime::get_named_arg(constants::RUNTIME_FEE);
     let ratio_verifier_hex = runtime::get_named_arg::<String>(NAMED_KEY_RATIO_VERIFIER);
@@ -90,6 +97,7 @@ fn install_contract() {
     runtime::put_key("droplinked_contract", contract_hash.into());
 }
 
+/// This method gets executed when the session code is deployed to the network, It will simply call the install_contract function to install the contract
 #[no_mangle]
 pub extern "C" fn call() {
     install_contract();

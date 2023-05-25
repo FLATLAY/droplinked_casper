@@ -25,7 +25,9 @@ use crate::{
     ndpc_utils::{self, get_holder_by_id, get_holder_ids, get_request_by_id},
     Error,
 };
-
+/// Get dicts from contract namedkeys that are needed for the approve function of the contract to run
+/// 
+/// The needed dicts are : `NAMED_KEY_DICT_REQ_OBJ`, `NAMED_KEY_DICT_PROD_REQS`, `NAMED_KEY_DICT_PUB_REQS`, `NAMED_KEY_DICT_OWNERS_NAME`, `NAMED_KEY_DICT_HOLDERS_NAME`, `NAMED_KEY_DICT_PUBAPPROVED_NAME`, `NAMED_KEY_DICT_PRODAPPROVED_NAME`, `NAMED_KEY_APPROVED_CNT`, `NAMED_KEY_DICT_APPROVED_NAME`
 fn get_approve_dicts() -> (URef, URef, URef, URef, URef, URef, URef, URef, URef) {
     (
         ndpc_utils::get_named_key_by_name(NAMED_KEY_DICT_REQ_OBJ),
@@ -40,6 +42,14 @@ fn get_approve_dicts() -> (URef, URef, URef, URef, URef, URef, URef, URef, URef)
     )
 }
 
+/// Approve Entrypoint of the contract
+/// 
+/// It would get `request_id` from the runtime args, and approve that PublishRequest, it would panic if any account calls it except the owner account of the token
+/// It would panic if the request with the given request_id does not exist
+/// # Returns
+/// `approved_id`: `u64`
+/// # Emits 
+/// `DropLinkedEvent::ApprovedPublish`
 #[no_mangle]
 pub extern "C" fn approve() {
     // Get dicts
@@ -157,6 +167,14 @@ pub extern "C" fn approve() {
     });
     runtime::ret(ret);
 }
+
+/// Disapprove Entrypoint of the contract
+/// 
+/// Gets `amount`, `approved_id`, `publisher-account` from the runtime args, and removes the given `amount` from its approved amounts, and adds it to the producers holder
+/// If the amount of the approvedNft reaches 0, its id would be removed from state of the contract (from dicts)
+/// This function would panic if the amount is larger than the approved amount. Also it would panic if the caller is not the owner of the token.
+/// # Emits 
+/// `DropLinkedEvent::DisapprovedPublish`
 #[no_mangle]
 pub extern "C" fn disapprove() {
     //check if the caller is the owner of the token
@@ -245,6 +263,9 @@ pub extern "C" fn disapprove() {
     emit(DropLinkedEvent::DisapprovedPublish { approved_id });
 }
 
+/// Gets the needed dicts from storage, to run the publish_request entrypoint of the contract
+/// 
+/// Needed dicts are : `NAMED_KEY_DICT_HOLDERS_NAME`, `NAMED_KEY_DICT_OWNERS_NAME`, `NAMED_KEY_DICT_REQ_OBJ`, `NAMED_KEY_DICT_PROD_REQS`, `NAMED_KEY_DICT_PUB_REQS`, `NAMED_KEY_REQ_CNT`
 fn get_publish_request_storage() -> (URef, URef, URef, URef, URef, URef) {
     (
         ndpc_utils::get_named_key_by_name(NAMED_KEY_DICT_HOLDERS_NAME),
@@ -255,6 +276,8 @@ fn get_publish_request_storage() -> (URef, URef, URef, URef, URef, URef) {
         ndpc_utils::get_named_key_by_name(NAMED_KEY_REQ_CNT),
     )
 }
+
+/// Gets the runtime args for the publishRequest in order to run it
 fn get_publish_request_runtime_args() -> (AccountHash, u64, u64) {
     (
         runtime::get_named_arg::<Key>(RUNTIME_ARG_PRODUCER_ACCOUNT_HASH)
@@ -265,6 +288,10 @@ fn get_publish_request_runtime_args() -> (AccountHash, u64, u64) {
     )
 }
 
+/// publish_request entrypoint of the contract
+/// 
+/// Gets `producer_account_hash`, `holder_id` and `amount` from runtime args, and builds a new PublishRequest object, gets a request_id for it, and 
+/// holds it in the request_objects dict and adds the request_id to producer and publisher's request dicts
 #[no_mangle]
 pub extern "C" fn publish_request() {
     let (holders_dict, owners_dict, requests_dict, prod_reqs_dict, pub_reqs_dict, tokens_cnt_uref) =
@@ -334,6 +361,7 @@ pub extern "C" fn publish_request() {
     runtime::ret(ret);
 }
 
+/// Cancel Request needed URef (dicts) from storage
 fn get_cancel_request_storage() -> (URef, URef, URef) {
     (
         ndpc_utils::get_named_key_by_name(NAMED_KEY_DICT_REQ_OBJ),
@@ -342,6 +370,10 @@ fn get_cancel_request_storage() -> (URef, URef, URef) {
     )
 }
 
+/// Cancel_request entrypoint of the contract
+/// 
+/// It should be called by the publisher, who sent the publishrequest to the producer,
+/// the publisher should provide the `request_id`, and the request would be cancelled and removed from all dicts of the contract storage
 #[no_mangle]
 pub extern "C" fn cancel_request() {
     //storages we need to work with

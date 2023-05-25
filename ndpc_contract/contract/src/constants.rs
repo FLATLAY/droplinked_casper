@@ -36,15 +36,25 @@ pub const RUNTIME_ARG_PURSE_ADDR: &str = "purse_addr";
 pub const RUNTIME_ARG_PRICE: &str = "price";
 pub const RUNTIME_ARG_SHIPPING_PRICE: &str = "shipping_price";
 pub const RUNTIME_ARG_TAX_PRICE: &str = "tax_price";
-
 pub const RUNTIME_PRODUCT_PRICE: &str = "product_price";
 pub const RUNTIME_FEE: &str = "fee";
-
 pub const CONTRACTPACKAGEHASH: &str = "droplinked_package_hash";
 
+/// Returns all the entrypoints that the contract has
+/// 
+/// # Entrypoints : 
+/// 1. mint 
+///     Gets : `metadata` : `String` , `amount` : `u64`, `recipient` : `Key`, `price` : `u64` , `comission` : `u8`
+///     Returns : `holder_id` : `u64` 
+/// 2. approve
+/// 3. disapprove
+/// 4. buy
+/// 5. init
+/// 6. publish_request
+/// 7. cancel_request
+/// 8. direct_pay
 pub fn get_entrypoints() -> EntryPoints {
     let mut result = EntryPoints::new();
-
     let mint_parameters: Parameters = vec![
         Parameter::new(
             RUNTIME_ARG_METADATA.to_string(),
@@ -164,6 +174,9 @@ pub fn get_entrypoints() -> EntryPoints {
     result
 }
 
+/// Gets the namedkeys of the contract and returns them as a BTreeMap<String,Key>
+/// 
+/// It contains NamedKeys for : `NAMED_KEY_APPROVED_CNT`, `NAMED_KEY_HOLDERSCNT`, `NAMED_KEY_TOKENSCNT`, `NAMED_KEY_REQ_CNT`, `NAMED_KEY_RATIO_VERIFIER`, `RUNTIME_FEE` 
 pub fn get_named_keys(
     ratio_verifier: PublicKey,
     fee: u64,

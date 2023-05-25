@@ -21,22 +21,25 @@ use casper_types::{
     bytesrepr::{Error, FromBytes, ToBytes},
     CLTyped,
 };
+/// Hash-len of the metadata, its blake2b so it would be 32 bytes
 const METADATA_HASH_LENGTH: usize = 32;
 
+/// Holds the hash of the metadata
 pub struct MetadataHash(pub [u8; METADATA_HASH_LENGTH]);
+
 impl AsStrized for MetadataHash {
     fn as_string(&self) -> String {
         base16::encode_lower(&self.0)
     }
 }
-// This struct is used to store publish requests
+/// This struct is used to store publish requests
 pub struct PublishRequest {
     pub holder_id: u64,
     pub amount: u64,
     pub producer: AccountHash,
     pub publisher: AccountHash,
 }
-
+/// Metadata of the NFT, including name, uri, checksum, price and comission
 pub struct NftMetadata {
     pub name: String,
     pub token_uri: String,
@@ -44,14 +47,13 @@ pub struct NftMetadata {
     pub price: u64,
     pub comission: u64,
 }
-// A amount and a token_id identifies a NFT
+/// NFTHolder : an amount and a token_id which identifies an NFT
 pub struct NFTHolder {
-    // pub owner : AccountHash!!!
     pub amount: u64,
     pub token_id: u64,
 }
 
-// this struct is used to store the approved NFTs (approved to publish)
+/// This struct is used to store the approved NFTs (approved to publish)
 pub struct ApprovedNFT {
     pub holder_id: u64,
     pub amount: u64,
@@ -59,9 +61,8 @@ pub struct ApprovedNFT {
     pub publisheraccount: AccountHash,
     pub token_id: u64,
 }
-//size : 32 + 32 + 8 + 8 + 8 + 1 = 89 bytes
 
-// a simple wrapper for a list of u64 (used to store multiple lists of u64 in the contract)
+/// a simple wrapper for a set of u64
 pub struct U64list {
     pub list: BTreeSet<u64>,
 }
@@ -413,6 +414,7 @@ impl PublishRequest {
     }
 }
 
+/// Converts the given Strign to the type, used to convert hex encoded string to accounthash
 pub trait FromStringize {
     fn from_string(string: String) -> Self;
 }
@@ -421,6 +423,7 @@ impl FromStringize for AccountHash {
         AccountHash::from_formatted_str(format!("account-hash-{}", string).as_str()).unwrap()
     }
 }
+/// Converts the given object to String, Its used to convert the AccountHash to base16 encoded string
 pub trait AsStrized {
     fn as_string(&self) -> String;
 }
