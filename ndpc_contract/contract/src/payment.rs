@@ -7,10 +7,10 @@ use crate::{
         NAMED_KEY_DICT_PUBAPPROVED_NAME, RUNTIME_ARG_AMOUNT,
         RUNTIME_ARG_APPROVED_ID, RUNTIME_ARG_CURRENT_PRICE_TIMESTAMP, RUNTIME_ARG_PURSE_ADDR,
         RUNTIME_ARG_RECIPIENT, RUNTIME_ARG_SHIPPING_PRICE, RUNTIME_ARG_SIGNATURE,
-        RUNTIME_ARG_TAX_PRICE, RUNTIME_PRODUCT_PRICE,
+        RUNTIME_ARG_TAX_PRICE, RUNTIME_PRODUCT_PRICE, NAMED_KEY_HOLDERSCNT,
     },
     event::{emit, DropLinkedEvent},
-    ndpc_types::{self, AsStrized},
+    ndpc_types::{self, AsStrized, U64list},
     ndpc_utils::{
         self, calculate_payment, get_approved_holder_by_id, get_droplinked_account,
         get_nft_metadata, get_ratio_verifier, verify_signature, get_fee,
@@ -176,6 +176,83 @@ pub extern "C" fn buy() {
         approved_id,
         buyer: get_caller(),
     });
+
+    let mut approved_holder = get_approved_holder_by_id(approved_dict, approved_id);
+
+    approved_holder.amount -= amount;
+
+    let mut holder: ndpc_types::NFTHolder = storage::dictionary_get::<ndpc_types::NFTHolder>(
+        _holders_dict,
+        approved_holder.holder_id.to_string().as_str(),
+    )
+    .unwrap_or_revert_with(Error::HolderDoesentExist)
+    .unwrap_or_revert_with(Error::HolderDoesentExist);
+    holder.amount -= amount;
+    storage::dictionary_put(
+        _holders_dict,
+        approved_holder.holder_id.to_string().as_str(),
+        holder,
+    );
+
+    if approved_holder.amount == 0 {
+        let mut publisher_approved_list =
+            storage::dictionary_get::<U64list>(_publishers_approved_dict, publisher_string.as_str())
+                .unwrap_or_revert()
+                .unwrap_or_revert_with(ApiError::from(Error::_ApprovedListDoesentExist));
+        publisher_approved_list.remove(approved_id);
+        storage::dictionary_put(
+            _publishers_approved_dict,
+            publisher_string.as_str(),
+            publisher_approved_list,
+        );
+        let mut producer_approved_list =
+            storage::dictionary_get::<U64list>(_producers_approved_dict, producer_string.as_str())
+                .unwrap_or_revert()
+                .unwrap_or_revert_with(ApiError::from(Error::_ApprovedListDoesentExist));
+        producer_approved_list.remove(approved_id);
+        storage::dictionary_put(
+            _producers_approved_dict,
+            producer_string.as_str(),
+            producer_approved_list,
+        );
+    }
+    let token_id = approved_holder.token_id;
+    storage::dictionary_put(
+        approved_dict,
+        approved_id.to_string().as_str(),
+        approved_holder,
+    );
+    let new_holder = ndpc_types::NFTHolder::new(amount, token_id);
+    let holders_cnt_uref = ndpc_utils::get_named_key_by_name(NAMED_KEY_HOLDERSCNT);
+    let mut holders_cnt: u64 = storage::read(holders_cnt_uref)
+        .unwrap_or_revert()
+        .unwrap_or_revert();
+    holders_cnt += 1;
+    storage::write(holders_cnt_uref, holders_cnt);
+    let new_holder_id = holders_cnt;
+    storage::dictionary_put(_holders_dict, new_holder_id.to_string().as_str(), new_holder);
+    let caller_list_opt =
+        storage::dictionary_get::<U64list>(_holders_dict, &caller_string).unwrap_or_revert();
+    if caller_list_opt.is_none() {
+        let mut new_list = U64list::new();
+        new_list.add(new_holder_id);
+        storage::dictionary_put(_holders_dict, &caller_string, new_list);
+    } else {
+        let mut caller_list = caller_list_opt.unwrap_or_revert();
+        caller_list.add(new_holder_id);
+        storage::dictionary_put(_holders_dict, &caller_string, caller_list);
+    }
+    let caller_tokens_opt =
+        storage::dictionary_get::<U64list>(_owners_dict, &caller_string).unwrap_or_revert();
+    if caller_tokens_opt.is_none() {
+        let mut new_list = U64list::new();
+        new_list.add(new_holder_id);
+        storage::dictionary_put(_owners_dict, &caller_string, new_list);
+    } else {
+        let mut caller_tokens = caller_tokens_opt.unwrap_or_revert();
+        caller_tokens.add(new_holder_id);
+        storage::dictionary_put(_owners_dict, &caller_string, caller_tokens);
+    }
     
 }
 
