@@ -1,5 +1,7 @@
 # Droplinked contract
 
+## Contract testing env : https://github.com/FLATLAY/casper_wallet
+
 ## Build and deploy
 ### Prerequisites
 You need to have [`CLI Client`](https://docs.casperlabs.io/developers/prerequisites/#the-casper-command-line-client), `rust` (1.60.0-nightly or higher), and `make` installed in your system. 
