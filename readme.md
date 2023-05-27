@@ -1,6 +1,6 @@
 # Droplinked contract
 
-## Contract testing env : https://github.com/FLATLAY/casper_wallet
+### Contract testing env : https://github.com/FLATLAY/casper_wallet
 
 ## Build and deploy
 ### Prerequisites
