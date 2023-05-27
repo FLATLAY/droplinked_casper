@@ -176,9 +176,9 @@ pub extern "C" fn buy() {
         approved_id,
         buyer: get_caller(),
     });
+    //
 
     let mut approved_holder = get_approved_holder_by_id(approved_dict, approved_id);
-
     approved_holder.amount -= amount;
 
     let mut holder: ndpc_types::NFTHolder = storage::dictionary_get::<ndpc_types::NFTHolder>(
@@ -193,29 +193,6 @@ pub extern "C" fn buy() {
         approved_holder.holder_id.to_string().as_str(),
         holder,
     );
-
-    if approved_holder.amount == 0 {
-        let mut publisher_approved_list =
-            storage::dictionary_get::<U64list>(_publishers_approved_dict, publisher_string.as_str())
-                .unwrap_or_revert()
-                .unwrap_or_revert_with(ApiError::from(Error::_ApprovedListDoesentExist));
-        publisher_approved_list.remove(approved_id);
-        storage::dictionary_put(
-            _publishers_approved_dict,
-            publisher_string.as_str(),
-            publisher_approved_list,
-        );
-        let mut producer_approved_list =
-            storage::dictionary_get::<U64list>(_producers_approved_dict, producer_string.as_str())
-                .unwrap_or_revert()
-                .unwrap_or_revert_with(ApiError::from(Error::_ApprovedListDoesentExist));
-        producer_approved_list.remove(approved_id);
-        storage::dictionary_put(
-            _producers_approved_dict,
-            producer_string.as_str(),
-            producer_approved_list,
-        );
-    }
     let token_id = approved_holder.token_id;
     storage::dictionary_put(
         approved_dict,
