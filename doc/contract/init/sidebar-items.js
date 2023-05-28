@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["init","init entrypoint, the first called method of the contract"]]});

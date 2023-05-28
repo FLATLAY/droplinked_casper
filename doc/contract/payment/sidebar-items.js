@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["buy","Buy entrypoint of the droplinked contract"],["direct_pay","Direct buy is used to proxy the casper transfers through droplinked’s contract, to transfer droplinked’s share to its account, and transfer the rest of it to the producer"],["get_buy_runtime_args","Buy entrypoint’s runtime args"],["get_buy_storage","Buy Entrypoint’s needed dicts"]]});

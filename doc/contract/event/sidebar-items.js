@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["DropLinkedEvent","Droplinked Events, Including Mint(Record), PublishRequest, ApprovedPublish, DisapprovedPublish, CancelRequest, Buy, and Payment"]],"fn":[["emit","Emits the given event into the urefs that contract creates, and would be detected by droplinked’s Qserver when the transaction is done"]]});
