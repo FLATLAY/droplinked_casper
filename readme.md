@@ -1,7 +1,7 @@
 # Droplinked contract
 
 ### Contract testing env : https://github.com/FLATLAY/casper_wallet
-### Rust docs of source code (click [here](https://htmlpreview.github.io/?https://github.com/FLATLAY/droplinked_casper/blob/main/doc/contract/index.html))
+### Rust docs of source code could be found [here](https://htmlpreview.github.io/?https://github.com/FLATLAY/droplinked_casper/blob/main/doc/contract/index.html)
 ### Contract Interface documentation could be found [here](https://flatlay.github.io/#/ContractInterface)
 ## Build and deploy
 ### Prerequisites
