@@ -33,18 +33,18 @@ in the _ndpc_contract_ folder, in order to make the rust documentations of the c
 In deploy part, we should send this WASM file, to casper nodes, to deploy them on the chain,
 Run :
 ```
-casper-client put-deploy -n http://89.58.52.245:7777 \
---chain-name casper-test --payment-amount 231420060000 \
--k keys/m.pem --session-path deploy/contract.wasm \
---session-arg "ratio_verifier:string='0144f5adf499591351807bc83490314262bd6846beee80a16269a83c9901ecec8a'" \
---session-arg "fee:u64='100'" \
+casper-client put-deploy -n http://CSPR_RPC:7777 \
+--chain-name CHAINNAME --payment-amount 231420060000 \
+-k PATH_TO_SECRET_KEY --session-path deploy/contract.wasm \
+--session-arg "ratio_verifier:string='PUBLICKEY_OF_RATIO_VERIFIER'" \
+--session-arg "fee:u64='FEE'" \
 --ttl "5hour"
 ```
 where:
 - `CSPR_RPC` is the ip address of a casper rpc node (for testnet or mainnet) which could be found [here](https://testnet.cspr.live/tools/peers) and [here](https://cspr.live/tools/peers) for testnet or mainnet nodes,
 - `CHAINNAME` should be `casper-test` for testnet, and `casper` for mainnet.
 - `PATH_TO_SECRET_KEY`, which could be accessed by downloading your private-key from `casper-signer`
-- `CURRENTTIMESTAMP` which should be set to the current UNIXEPOCH time, it is used for security issues on contract
+- `FEE` which should be set to the current UNIXEPOCH time, it is used for security issues on contract
 - `PUBLICKEY_OF_RATIO_VERIFIER`, should be set to the public key of the party (or person), who signs the CSPR/USDT ratio for `buy` entrypoint
 
 ### Unit and Integration tests
