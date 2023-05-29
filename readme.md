@@ -33,7 +33,12 @@ in the _ndpc_contract_ folder, in order to make the rust documentations of the c
 In deploy part, we should send this WASM file, to casper nodes, to deploy them on the chain,
 Run :
 ```
-casper-client put-deploy -n http://<CSPR_RPC_HERE>:7777 --chain-name <CHAINNAME> --payment-amount 190420060000 -k <PATH_TO_SECRET_KEY> --session-path deploy/contract.wasm --session-arg "timestamp:u64='<CURRENTTIMESTAMP>'" --session-arg "ratio_verifier:string='<PUBLICKEY_OF_RATIO_VERIFIER>'"
+casper-client put-deploy -n http://89.58.52.245:7777 \
+--chain-name casper-test --payment-amount 231420060000 \
+-k keys/m.pem --session-path deploy/contract.wasm \
+--session-arg "ratio_verifier:string='0144f5adf499591351807bc83490314262bd6846beee80a16269a83c9901ecec8a'" \
+--session-arg "fee:u64='100'" \
+--ttl "5hour"
 ```
 where:
 - `CSPR_RPC` is the ip address of a casper rpc node (for testnet or mainnet) which could be found [here](https://testnet.cspr.live/tools/peers) and [here](https://cspr.live/tools/peers) for testnet or mainnet nodes,
