@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["SMALL_BYTES_COUNT","The number of input bytes, at or below which [`decode`] will checksum-decode the output."]],"fn":[["decode","Decodes a mixed-case hexadecimal string, verifying that it conforms to the checksum scheme similar to scheme in EIP-55."]]});

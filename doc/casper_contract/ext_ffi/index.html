@@ -1,0 +1,245 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Contains low-level bindings for host-side (“external”) functions."><meta name="keywords" content="rust, rustlang, rust-lang, ext_ffi"><title>casper_contract::ext_ffi - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;CasperLabs&#x2F;casper-node&#x2F;master&#x2F;images&#x2F;CasperLabs_Logo_Favicon_RGB_50px.png"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../casper_contract/index.html"><div class="logo-container"><img src="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;CasperLabs&#x2F;casper-node&#x2F;master&#x2F;images&#x2F;CasperLabs_Logo_Symbol_RGB.png" alt="logo"></div>
+        </a><h2 class="location">Module ext_ffi</h2><div class="sidebar-elems"><div class="block items"><ul><li><a href="#functions">Functions</a></li></ul></div><div id="sidebar-vars" data-name="ext_ffi" data-ty="mod" data-relpath="./"></div><script defer src="./sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../casper_contract/index.html"><img src="https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;CasperLabs&#x2F;casper-node&#x2F;master&#x2F;images&#x2F;CasperLabs_Logo_Symbol_RGB.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
+                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Module <a href="../index.html">casper_contract</a>::<wbr><a class="mod" href="#">ext_ffi</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band">
+        <a class="srclink" href="../../src/casper_contract/ext_ffi.rs.html#1-761" title="goto source code">source</a> ·
+        <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div>
+<details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Contains low-level bindings for host-side (“external”) functions.</p>
+<p>Generally should not be used directly.  See the <a href="../contract_api/index.html"><code>contract_api</code></a> for
+high-level bindings suitable for writing smart contracts.</p>
+</div></details><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_add.html" title="casper_contract::ext_ffi::casper_add fn">casper_add</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function adds the provided value (read via de-serializing the bytes
+in wasm memory from offset <code>value_ptr</code> to <code>value_ptr + value_size</code>) to the
+current value under the provided key (read via de-serializing the bytes in
+wasm memory from offset <code>key_ptr</code> to <code>key_ptr + key_size</code>) in the global
+state. This function will cause a <code>Trap</code> if the key or value fail to
+de-serialize or if adding to that key is not permitted, or no value
+presently exists at that key.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_add_associated_key.html" title="casper_contract::ext_ffi::casper_add_associated_key fn">casper_add_associated_key</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function attempts to add the given public key as an associated key to
+the current account. Presently only 32-byte keys are supported; it is up
+to the caller to ensure that the 32-bytes starting from offset
+<code>public_key</code> represent the key they wish to add. Weights are internally
+represented by a <code>u8</code>, this function will cause a <code>Trap</code> if the weight is
+not between 0 and 255 inclusively. The result returned is a status code
+for adding the key where 0 represents success, 1 means no more keys can be
+added to this account (only 10 keys can be added), 2 means the key is
+already associated (if you wish to change the weight of an associated key
+then used <a href="fn.casper_update_associated_key.html" title="casper_update_associated_key"><code>casper_update_associated_key</code></a>), and 3 means permission denied (this
+could be because the function was called outside of session code or
+because the key management threshold was not met by the keys authorizing
+the deploy).</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_add_contract_version.html" title="casper_contract::ext_ffi::casper_add_contract_version fn">casper_add_contract_version</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Adds new contract version to a contract package.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_blake2b.html" title="casper_contract::ext_ffi::casper_blake2b fn">casper_blake2b</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Returns a 32-byte BLAKE2b hash digest from the given input bytes</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_call_contract.html" title="casper_contract::ext_ffi::casper_call_contract fn">casper_call_contract</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Calls a contract by its hash. Requires entry point name that has to be present on a
+specified contract, and serialized named arguments. Returns a standard error code in
+case of failure, otherwise a successful execution returns zero. Bytes returned from contract
+execution are set to <code>result_size</code> pointer.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_call_versioned_contract.html" title="casper_contract::ext_ffi::casper_call_versioned_contract fn">casper_call_versioned_contract</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Calls a contract by its package hash. Optionally accepts a serialized <code>Option&lt;u32&gt;</code> as a
+version that for <code>None</code> case would call most recent version for given protocol version,
+otherwise it selects a specific contract version. Requires an entry point name
+registered in a given version of contract. Returns a standard error code in case of
+failure, otherwise a successful execution returns zero. Bytes returned from contract
+execution are set to <code>result_size</code> pointer</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_create_contract_package_at_hash.html" title="casper_contract::ext_ffi::casper_create_contract_package_at_hash fn">casper_create_contract_package_at_hash</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Creates new contract package at hash. Returns both newly generated
+<a href="../../casper_types/contracts/struct.ContractPackageHash.html" title="casper_types::ContractPackageHash"><code>casper_types::ContractPackageHash</code></a> and a <a href="../../casper_types/uref/struct.URef.html" title="casper_types::URef"><code>casper_types::URef</code></a> for further
+modifying access.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_create_contract_user_group.html" title="casper_contract::ext_ffi::casper_create_contract_user_group fn">casper_create_contract_user_group</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Creates new named contract user group under a contract package.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_create_purse.html" title="casper_contract::ext_ffi::casper_create_purse fn">casper_create_purse</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function uses the mint contract to create a new, empty purse. If the
+call is successful then the <code>URef</code> (in serialized form) is written
+to the indicated place in wasm memory. It is up to the caller to ensure at
+least <code>purse_size</code> bytes are allocated at <code>purse_ptr</code>, otherwise
+data corruption may occur. This function causes a <code>Trap</code> if
+<code>purse_size</code> is not equal to 38.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_dictionary_get.html" title="casper_contract::ext_ffi::casper_dictionary_get fn">casper_dictionary_get</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>The bytes in wasm memory from offset <code>key_ptr</code> to <code>key_ptr + key_size</code>
+will be used together with the current context’s seed to form a dictionary.
+The value at that dictionary is read from the global state, serialized and
+buffered in the runtime. This result can be obtained via the <a href="fn.casper_read_host_buffer.html" title="casper_read_host_buffer"><code>casper_read_host_buffer</code></a>
+function.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_dictionary_put.html" title="casper_contract::ext_ffi::casper_dictionary_put fn">casper_dictionary_put</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>The bytes in wasm memory from offset <code>key_ptr</code> to <code>key_ptr + key_size</code>
+will be used together with the passed URef’s seed to form a dictionary.
+This function writes the provided value (read via de-serializing the bytes
+in wasm memory from offset <code>value_ptr</code> to <code>value_ptr + value_size</code>) under
+that dictionary in the global state. This function will cause a <code>Trap</code> if
+the value fails to de-serialize.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_disable_contract_version.html" title="casper_contract::ext_ffi::casper_disable_contract_version fn">casper_disable_contract_version</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Disables contract in a contract package. Returns non-zero standard error for a failure,
+otherwise a zero indicates success.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_get_balance.html" title="casper_contract::ext_ffi::casper_get_balance fn">casper_get_balance</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function uses the mint contract’s balance function to get the balance
+of the specified purse. It causes a <code>Trap</code> if the bytes in wasm memory
+from <code>purse_ptr</code> to <code>purse_ptr + purse_size</code> cannot be
+de-serialized as a <code>URef</code>. The return value is the size of the
+result in bytes. The result is copied to the host buffer and thus can be obtained
+by any function which copies the buffer into wasm memory (e.g.
+<code>get_read</code>). The result bytes are serialized from type <code>Option&lt;U512&gt;</code> and
+should be interpreted as such.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_get_blocktime.html" title="casper_contract::ext_ffi::casper_get_blocktime fn">casper_get_blocktime</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function gets the timestamp which will be in the block this deploy is
+included in. The return value is always a 64-bit unsigned integer,
+representing the number of milliseconds since the Unix epoch. It is up to
+the caller to ensure there are 8 bytes allocated at <code>dest_ptr</code>, otherwise
+data corruption in the wasm memory may occur.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_get_caller.html" title="casper_contract::ext_ffi::casper_get_caller fn">casper_get_caller</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function returns the public key of the account for this deploy. The
+result is always 36-bytes in length (4 bytes prefix on a 32-byte public
+key); it is up to the caller to ensure the right amount of memory is
+allocated at <code>dest_ptr</code>, data corruption in the wasm memory could occur
+otherwise.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_get_key.html" title="casper_contract::ext_ffi::casper_get_key fn">casper_get_key</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_get_main_purse.html" title="casper_contract::ext_ffi::casper_get_main_purse fn">casper_get_main_purse</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_get_named_arg.html" title="casper_contract::ext_ffi::casper_get_named_arg fn">casper_get_named_arg</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function copies the contents of the current runtime buffer into the
+wasm memory, beginning at the provided offset. It is intended that this
+function be called after a call to <code>load_arg</code>. It is up to the caller to
+ensure that the proper amount of memory is allocated for this write,
+otherwise data corruption in the wasm memory may occur due to this call
+overwriting some bytes unintentionally. The size of the data which will be
+written is returned from the <code>load_arg</code> call. The bytes which are written
+are the those corresponding to the provided argument; it is up to the
+developer to know how to attempt to interpret those bytes.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_get_named_arg_size.html" title="casper_contract::ext_ffi::casper_get_named_arg_size fn">casper_get_named_arg_size</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function queries the host side to check for given named argument existence and returns
+a size in bytes of given argument. Returns zero for success or non-zero value for
+failure as described in standard error codes.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_get_phase.html" title="casper_contract::ext_ffi::casper_get_phase fn">casper_get_phase</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function writes bytes representing the current phase of the deploy
+execution to the specified pointer. The size of the result is always one
+byte, it is up to the caller to ensure one byte of memory is allocated at
+<code>dest_ptr</code>, otherwise data corruption in the wasm memory could occur. The
+one byte is interpreted as follows: 0 means a system phase (should never
+be encountered by user deploys), 1 means the payment phase, 2 means the
+session phase and 3 means the finalization phase (should never be
+encountered by user code).</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_get_system_contract.html" title="casper_contract::ext_ffi::casper_get_system_contract fn">casper_get_system_contract</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_has_key.html" title="casper_contract::ext_ffi::casper_has_key fn">casper_has_key</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_is_valid_uref.html" title="casper_contract::ext_ffi::casper_is_valid_uref fn">casper_is_valid_uref</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function checks if all the keys contained in the given <code>Value</code> are
+valid in the current context (i.e. the <code>Value</code> does not contain any forged
+<code>URef</code>s). This function causes a <code>Trap</code> if the bytes in wasm
+memory from offset <code>value_ptr</code> to <code>value_ptr + value_size</code> cannot be de-serialized as
+type <code>Value</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_load_call_stack.html" title="casper_contract::ext_ffi::casper_load_call_stack fn">casper_load_call_stack</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_load_named_keys.html" title="casper_contract::ext_ffi::casper_load_named_keys fn">casper_load_named_keys</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_new_dictionary.html" title="casper_contract::ext_ffi::casper_new_dictionary fn">casper_new_dictionary</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Creates new URef that points to a dictionary partition of global state.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_new_uref.html" title="casper_contract::ext_ffi::casper_new_uref fn">casper_new_uref</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function causes the runtime to generate a new <code>URef</code>, with
+the provided value stored under it in the global state. The new
+<code>URef</code> is written (in serialized form) to the wasm linear
+memory starting from the <code>key_ptr</code> offset. Note that data corruption is possible if not
+enough memory is allocated for the <code>URef</code> at <code>key_ptr</code>. This
+function will cause a <code>Trap</code> if the bytes in wasm memory from offset <code>value_ptr</code> to
+<code>value_ptr + value_size</code> cannot be de-serialized into a <code>Value</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_provision_contract_user_group_uref.html" title="casper_contract::ext_ffi::casper_provision_contract_user_group_uref fn">casper_provision_contract_user_group_uref</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Requests host to provision additional <a href="../../casper_types/uref/struct.URef.html" title="casper_types::URef"><code>casper_types::URef</code></a> to a specified group
+identified by its label. Returns standard error code for non-zero value, otherwise zero
+indicated success.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_put_key.html" title="casper_contract::ext_ffi::casper_put_key fn">casper_put_key</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_read_host_buffer.html" title="casper_contract::ext_ffi::casper_read_host_buffer fn">casper_read_host_buffer</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function copies the contents of the current runtime buffer into the
+wasm memory, beginning at the provided offset. It is intended that this
+function be called after a call to a function that uses host buffer. It is up to the caller
+to ensure that the proper amount of memory is allocated for this write,
+otherwise data corruption in the wasm memory may occur due to this call
+overwriting some bytes unintentionally. The size of the data which will be
+written is stored on the host. The bytes which are written are those corresponding to the
+value returned by the called contract; it is up to the developer to know how to attempt
+to interpret those bytes.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_read_value.html" title="casper_contract::ext_ffi::casper_read_value fn">casper_read_value</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>The bytes in the span of wasm memory from <code>key_ptr</code> to <code>key_ptr + key_size</code> must correspond
+to a valid global state key, otherwise the function will fail. If the key is de-serialized
+successfully, then the result of the read is serialized and buffered in the runtime. This
+result can be obtained via the <a href="fn.casper_read_host_buffer.html" title="casper_read_host_buffer"><code>casper_read_host_buffer</code></a> function. Returns standard error
+code.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_record_era_info.html" title="casper_contract::ext_ffi::casper_record_era_info fn">casper_record_era_info</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Records era info.  Can only be called from within the auction contract.
+Needed to support system contract-based execution.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_record_transfer.html" title="casper_contract::ext_ffi::casper_record_transfer fn">casper_record_transfer</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Records a transfer.  Can only be called from within the mint contract.
+Needed to support system contract-based execution.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_remove_associated_key.html" title="casper_contract::ext_ffi::casper_remove_associated_key fn">casper_remove_associated_key</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function attempts to remove the given public key from the associated
+keys of the current account. Presently only 32-byte keys are supported; it
+is up to the caller to ensure that the 32-bytes starting from offset
+<code>public_key</code> represent the key they wish to remove. The result returned is
+a status code for adding the key where 0 represents success, 1 means the
+key was not associated to begin with, 2 means means permission denied
+(this could be because the function was called outside of session code or
+because the key management threshold was not met by the keys authorizing
+the deploy), and 3 means this key cannot be removed because otherwise it
+would be impossible to meet either the deploy or key management
+thresholds.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_remove_contract_user_group.html" title="casper_contract::ext_ffi::casper_remove_contract_user_group fn">casper_remove_contract_user_group</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Removes group from given contract package.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_remove_contract_user_group_urefs.html" title="casper_contract::ext_ffi::casper_remove_contract_user_group_urefs fn">casper_remove_contract_user_group_urefs</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>Removes user group urefs. Accepts a contract package hash, label name of a group, and a list
+of urefs that will be removed from the group.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_remove_key.html" title="casper_contract::ext_ffi::casper_remove_key fn">casper_remove_key</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_ret.html" title="casper_contract::ext_ffi::casper_ret fn">casper_ret</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function causes a <code>Trap</code>, terminating the currently running module,
+but first copies the bytes from <code>value_ptr</code> to <code>value_ptr + value_size</code> to
+a buffer which is returned to the calling module (if this module was
+invoked by <a href="fn.casper_call_contract.html" title="casper_call_contract"><code>casper_call_contract</code></a> or <a href="fn.casper_call_versioned_contract.html" title="casper_call_versioned_contract"><code>casper_call_versioned_contract</code></a>). Additionally,
+the known <code>URef</code>s of the calling context are augmented with the
+<code>URef</code>s de-serialized from wasm memory offset
+<code>extra_urefs_ptr</code> to <code>extra_urefs_ptr + extra_urefs_size</code>. This function will cause a
+<code>Trap</code> if the bytes at <code>extra_urefs_ptr</code> cannot be de-serialized as type <code>Vec&lt;URef&gt;</code>, or
+if any of the extra <code>URef</code>s are invalid in the current
+context.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_revert.html" title="casper_contract::ext_ffi::casper_revert fn">casper_revert</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function causes a <code>Trap</code> which terminates the currently running
+module. Additionally, it signals that the current entire phase of
+execution of the deploy should be terminated as well, and that the effects
+of the execution up to this point should be reverted. The error code
+provided to this function will be included in the error message of the
+deploy in the block in which it is included.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_set_action_threshold.html" title="casper_contract::ext_ffi::casper_set_action_threshold fn">casper_set_action_threshold</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function changes the threshold to perform the specified action. The
+action index is interpreted as follows: 0 means deployment and 1 means key
+management. Thresholds are represented internally as a <code>u8</code>, this function
+will cause a <code>Trap</code> if the new threshold is not between 0 and 255
+inclusively. The return value is a status code where 0 means success, 1
+means the key management threshold cannot be set lower than the deploy
+threshold, 2 means the deployment threshold cannot be set higher than the
+key management threshold, 3 means permission denied (this could be because
+the function was called outside of session code or because the key
+management threshold was not met by the keys authorizing the deploy), and
+4 means the threshold would be set higher than the total weight of
+associated keys (and therefore would be impossible to meet).</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_transfer_from_purse_to_account.html" title="casper_contract::ext_ffi::casper_transfer_from_purse_to_account fn">casper_transfer_from_purse_to_account</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function uses the mint contract’s transfer function to transfer
+tokens from the specified purse to the main purse of the target account.
+If the target account does not exist then it is automatically created, and
+the tokens are transferred to the main purse of the new account. The
+source is a serialized <code>URef</code>.
+The target is a serialized <code>PublicKey</code> (i.e. 36 bytes where the
+first 4 bytes are the number <code>32</code> in little endian encoding, and the
+remaining 32-bytes are the public key). The amount must be a serialized
+512-bit unsigned integer. This function causes a <code>Trap</code> if the source
+cannot be de-serialized as a <code>URef</code>, or the target cannot be
+de-serialized as a <code>PublicKey</code> or the amount cannot be de-serialized into
+a <code>U512</code>. The return value indicated what occurred, where 0 means a
+successful transfer to an existing account, 1 means a successful transfer
+to a new account, and 2 means the transfer failed (this could be because
+the source purse had insufficient tokens or because there was not valid
+access to the source purse).</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_transfer_from_purse_to_purse.html" title="casper_contract::ext_ffi::casper_transfer_from_purse_to_purse fn">casper_transfer_from_purse_to_purse</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function uses the mint contract’s transfer function to transfer
+tokens from the specified source purse to the specified target purse. If
+the target account does not exist then it is automatically created, and
+the tokens are transferred to the main purse of the new account. The
+source is a serialized <code>URef</code>.
+The target is also a serialized <code>URef</code>. The amount must be a
+serialized 512-bit unsigned integer. This function causes a <code>Trap</code> if the
+source or target cannot be de-serialized as a <code>URef</code> or the amount
+cannot be de-serialized into a <code>U512</code>. The return value indicated what
+occurred, where 0 means a successful transfer, 1 means the transfer
+failed (this could be because the source purse had insufficient tokens or
+because there was not valid access to the source purse or target purse).</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_transfer_to_account.html" title="casper_contract::ext_ffi::casper_transfer_to_account fn">casper_transfer_to_account</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function uses the mint contract’s transfer function to transfer
+tokens from the current account’s main purse to the main purse of the
+target account. If the target account does not exist then it is
+automatically created, and the tokens are transferred to the main purse of
+the new account. The target is a serialized <code>PublicKey</code> (i.e. 36 bytes
+where the first 4 bytes are the number <code>32</code> in little endian encoding, and
+the remaining 32-bytes are the public key). The amount must be a
+serialized 512-bit unsigned integer. This function causes a <code>Trap</code> if the
+target cannot be de-serialized as a <code>PublicKey</code> or the amount cannot be
+de-serialized into a <code>U512</code>. The return value indicated what occurred,
+where 0 means a successful transfer to an existing account, 1 means a
+successful transfer to a new account, and 2 means the transfer failed
+(this could be because the current account’s main purse had insufficient
+tokens or because the function was called outside of session code and so
+does not have access to the account’s main purse).</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_update_associated_key.html" title="casper_contract::ext_ffi::casper_update_associated_key fn">casper_update_associated_key</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function attempts to update the given public key as an associated key
+to the current account. Presently only 32-byte keys are supported; it is
+up to the caller to ensure that the 32-bytes starting from offset
+<code>public_key</code> represent the key they wish to add. Weights are internally
+represented by a <code>u8</code>, this function will cause a <code>Trap</code> if the weight is
+not between 0 and 255 inclusively. The result returned is a status code
+for adding the key where 0 represents success, 1 means the key was not
+associated to the account (to add a new key use <code>add_associated_key</code>), 2
+means means permission denied (this could be because the function was
+called outside of session code or because the key management threshold was
+not met by the keys authorizing the deploy), and 3 means this key cannot
+be changed to the specified weight because then it would be impossible to
+meet either the deploy or key management thresholds (you may wish to try
+again with a higher weight or after lowering the action thresholds).</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.casper_write.html" title="casper_contract::ext_ffi::casper_write fn">casper_write</a><a title="unsafe function" href="#"><sup>⚠</sup></a></div><div class="item-right docblock-short"><p>This function writes the provided value (read via de-serializing the bytes
+in wasm memory from offset <code>value_ptr</code> to <code>value_ptr + value_size</code>) under
+the provided key (read via de-serializing the bytes in wasm memory from
+offset <code>key_ptr</code> to <code>key_ptr + key_size</code>) in the global state. This
+function will cause a <code>Trap</code> if the key or value fail to de-serialize or
+if writing to that key is not permitted.</p>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="casper_contract" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (1bd4fdc94 2022-01-12)" ></div>
+</body></html>

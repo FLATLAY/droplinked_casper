@@ -1,0 +1,214 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src&#x2F;main.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>main.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../contract/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../contract/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
+                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">no_std</span>]</span>
+<span class="attribute">#![<span class="ident">no_main</span>]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">affiliate</span>;
+<span class="kw">mod</span> <span class="ident">constants</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">event</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">init</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">mint</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ndpc_types</span>;
+<span class="kw">mod</span> <span class="ident">ndpc_utils</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">payment</span>;
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>))]</span>
+<span class="macro">compile_error!</span>(<span class="string">&quot;target arch should be wasm32: compile with &#39;--target wasm32-unknown-unknown&#39;&quot;</span>);
+
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
+<span class="kw">use</span> <span class="ident">alloc</span>::{
+    <span class="ident">collections::BTreeSet</span>,
+    <span class="ident">string</span>::{<span class="ident">String</span>, <span class="ident">ToString</span>},
+};
+<span class="kw">use</span> <span class="ident">casper_contract</span>::{
+    <span class="ident">contract_api</span>::{<span class="ident">runtime</span>, <span class="ident">storage</span>},
+    <span class="ident">unwrap_or_revert::UnwrapOrRevert</span>,
+};
+<span class="kw">use</span> <span class="ident">casper_types</span>::{<span class="ident">ApiError</span>, <span class="ident">AsymmetricType</span>, <span class="ident">ContractPackageHash</span>, <span class="ident">PublicKey</span>, <span class="ident">RuntimeArgs</span>, <span class="ident">URef</span>};
+<span class="kw">use</span> <span class="ident">constants</span>::{<span class="ident">get_entrypoints</span>, <span class="ident">get_named_keys</span>, <span class="ident">NAMED_KEY_RATIO_VERIFIER</span>};
+
+
+<span class="doccomment">/// All the different User error types for the contract</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u16</span>)]</span>
+<span class="kw">enum</span> <span class="ident">Error</span> {
+    <span class="ident">NotAccountHash</span> <span class="op">=</span> <span class="number">0</span>,
+    <span class="ident">MintMetadataNotValid</span> <span class="op">=</span> <span class="number">1</span>,
+    <span class="ident">PuseIsNotValid</span> <span class="op">=</span> <span class="number">2</span>,
+    <span class="ident">NotOwnerOfHolderId</span> <span class="op">=</span> <span class="number">3</span>,
+    <span class="ident">ApprovedHolderDoesentExist</span> <span class="op">=</span> <span class="number">4</span>,
+    <span class="ident">NotEnoughAmount</span> <span class="op">=</span> <span class="number">5</span>,
+    <span class="ident">MetadataDoesentExist</span> <span class="op">=</span> <span class="number">6</span>,
+    <span class="ident">_NotEnoughBalance</span> <span class="op">=</span> <span class="number">7</span>,
+    <span class="ident">TransferFailed</span> <span class="op">=</span> <span class="number">8</span>,
+    <span class="ident">HolderDoesentExist</span> <span class="op">=</span> <span class="number">9</span>,
+    <span class="ident">_ApprovedListDoesentExist</span> <span class="op">=</span> <span class="number">10</span>,
+    <span class="ident">EmptyOwnerShipList</span> <span class="op">=</span> <span class="number">11</span>,
+    <span class="ident">PublisherHasNoApprovedHolders</span> <span class="op">=</span> <span class="number">12</span>,
+    <span class="ident">ProducerHasNoApprovedHolders</span> <span class="op">=</span> <span class="number">13</span>,
+    <span class="ident">EmptyRequestCnt</span> <span class="op">=</span> <span class="number">14</span>,
+    <span class="ident">AccessDenied</span> <span class="op">=</span> <span class="number">15</span>,
+    <span class="ident">EmptyU64List</span> <span class="op">=</span> <span class="number">16</span>,
+    <span class="ident">MintHolderNotFound</span> <span class="op">=</span> <span class="number">17</span>,
+    <span class="ident">InvalidSignature</span> <span class="op">=</span> <span class="number">18</span>,
+    <span class="ident">InvalidTimestamp</span> <span class="op">=</span> <span class="number">19</span>,
+    <span class="ident">GetBalance</span> <span class="op">=</span> <span class="number">20</span>,
+    <span class="ident">InsufficientFunds</span> <span class="op">=</span> <span class="number">21</span>,
+    <span class="ident">KeyNotFound</span> <span class="op">=</span> <span class="number">22</span>,
+    <span class="ident">FeeNotFound</span> <span class="op">=</span> <span class="number">23</span>,
+    <span class="ident">KeyNotUref</span> <span class="op">=</span> <span class="number">24</span>,
+    <span class="ident">RequestDoesntExist</span> <span class="op">=</span> <span class="number">25</span>,
+}
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ApiError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">error</span>: <span class="ident">Error</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">ApiError::User</span>(<span class="ident">error</span> <span class="kw">as</span> <span class="ident">u16</span>)
+    }
+}
+
+<span class="doccomment">/// Installs the droplinked_contract with the given session args and calls the init function of the contract</span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// It&#39;ll get fee and ratio_verifier publicKey (the account which verifies the ratio of cspr/usd) as input, install droplinked&#39;s contract on testnet, and call it&#39;s init entrypoint</span>
+<span class="doccomment">/// It stores the contract hash and contract-package hash into the deployer&#39;s NAMEDKEYS, Creates a constructor group, which are the only group who can call the init function, adds the deployer to them,</span>
+<span class="doccomment">/// Calls the init function and then removes the deployer from that group so that the init method would never be called again!</span>
+<span class="kw">fn</span> <span class="ident">install_contract</span>() {
+    <span class="kw">let</span> <span class="ident">fee</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">runtime::get_named_arg</span>(<span class="ident">constants::RUNTIME_FEE</span>);
+    <span class="kw">let</span> <span class="ident">ratio_verifier_hex</span> <span class="op">=</span> <span class="ident">runtime::get_named_arg</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(<span class="ident">NAMED_KEY_RATIO_VERIFIER</span>);
+    <span class="kw">let</span> <span class="ident">ratio_verifier</span> <span class="op">=</span> <span class="ident">PublicKey::from_hex</span>(<span class="ident">ratio_verifier_hex</span>).<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">entry_points</span> <span class="op">=</span> <span class="ident">get_entrypoints</span>();
+    <span class="kw">let</span> <span class="ident">named_keys</span> <span class="op">=</span> <span class="ident">get_named_keys</span>(<span class="ident">ratio_verifier</span>, <span class="ident">fee</span>);
+    <span class="kw">let</span> (<span class="ident">contract_hash</span>, <span class="ident">_contract_version</span>) <span class="op">=</span> <span class="ident">storage::new_locked_contract</span>(
+        <span class="ident">entry_points</span>,
+        <span class="prelude-val">Some</span>(<span class="ident">named_keys</span>),
+        <span class="prelude-val">Some</span>(<span class="ident">constants::CONTRACTPACKAGEHASH</span>.<span class="ident">to_string</span>()),
+        <span class="prelude-val">None</span>,
+    );
+    <span class="kw">let</span> <span class="ident">package_hash</span> <span class="op">=</span> <span class="ident">ContractPackageHash::new</span>(
+        <span class="ident">runtime::get_key</span>(<span class="ident">constants::CONTRACTPACKAGEHASH</span>)
+            .<span class="ident">unwrap_or_revert</span>()
+            .<span class="ident">into_hash</span>()
+            .<span class="ident">unwrap_or_revert</span>(),
+    );
+    <span class="kw">let</span> <span class="ident">constructor_access</span>: <span class="ident">URef</span> <span class="op">=</span>
+        <span class="ident">storage::create_contract_user_group</span>(<span class="ident">package_hash</span>, <span class="string">&quot;constructor&quot;</span>, <span class="number">1</span>, <span class="ident">Default::default</span>())
+            .<span class="ident">unwrap_or_revert</span>()
+            .<span class="ident">pop</span>()
+            .<span class="ident">unwrap_or_revert</span>();
+    <span class="kw">let</span> <span class="kw">_</span>: () <span class="op">=</span> <span class="ident">runtime::call_contract</span>(<span class="ident">contract_hash</span>, <span class="string">&quot;init&quot;</span>, <span class="ident">RuntimeArgs::new</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">urefs</span> <span class="op">=</span> <span class="ident">BTreeSet::new</span>();
+    <span class="ident">urefs</span>.<span class="ident">insert</span>(<span class="ident">constructor_access</span>);
+    <span class="ident">storage::remove_contract_user_group_urefs</span>(<span class="ident">package_hash</span>, <span class="string">&quot;constructor&quot;</span>, <span class="ident">urefs</span>)
+        .<span class="ident">unwrap_or_revert</span>();
+    <span class="ident">runtime::put_key</span>(<span class="string">&quot;droplinked_contract&quot;</span>, <span class="ident">contract_hash</span>.<span class="ident">into</span>());
+}
+
+<span class="doccomment">/// This method gets executed when the session code is deployed to the network, It will simply call the install_contract function to install the contract</span>
+<span class="attribute">#[<span class="ident">no_mangle</span>]</span>
+<span class="kw">pub</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">call</span>() {
+    <span class="ident">install_contract</span>();
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="contract" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (1bd4fdc94 2022-01-12)" ></div>
+</body></html>

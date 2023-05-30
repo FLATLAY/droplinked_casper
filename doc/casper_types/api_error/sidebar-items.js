@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ApiError","Errors which can be encountered while running a smart contract."]],"fn":[["result_from","Converts an `i32` to a `Result<(), ApiError>`, where `0` represents `Ok(())`, and all other inputs are mapped to `Err(ApiError::<variant>)`.  The full list of mappings can be found in the docs for `ApiError`."]]});

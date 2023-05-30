@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["PrehashSigner","Sign the provided message prehash, returning a digital signature."],["PrehashVerifier","Verify the provided message prehash using `Self` (e.g. a public key)"]]});

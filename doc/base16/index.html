@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This is a base16 (e.g. hexadecimal) encoding and decoding library with an emphasis on performance. The API is very similar and inspired by the base64 crate’s API, however it’s less complex (base16 is much more simple than base64)."><meta name="keywords" content="rust, rustlang, rust-lang, base16"><title>base16 - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../base16/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.png" alt="logo"></div>
+        </a><h2 class="location">Crate base16</h2><div class="block version"><div class="narrow-helper"></div><p>Version 0.2.1</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all base16's items</p></a><div class="block items"><ul><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li></ul></div><div id="sidebar-vars" data-name="base16" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../base16/index.html"><img class="rust-logo" src="../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div>
+                                <input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">base16</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band">
+        <a class="srclink" href="../src/base16/lib.rs.html#1-639" title="goto source code">source</a> ·
+        <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div>
+<details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>This is a base16 (e.g. hexadecimal) encoding and decoding library with an
+emphasis on performance. The API is very similar and inspired by the base64
+crate’s API, however it’s less complex (base16 is much more simple than
+base64).</p>
+<h2 id="encoding" class="section-header"><a href="#encoding">Encoding</a></h2>
+<p>The config options at the moment are limited to the output case (upper vs
+lower).</p>
+<div><table><thead><tr><th>Function</th><th>Output</th><th>Allocates</th><th>Requires <code>alloc</code> feature</th></tr></thead><tbody>
+<tr><td><a href="fn.encode_upper.html" title="encode_upper"><code>encode_upper</code></a>, <a href="fn.encode_lower.html" title="encode_lower"><code>encode_lower</code></a></td><td>Returns a new <code>String</code></td><td>Always</td><td>Yes</td></tr>
+<tr><td><a href="fn.encode_config.html" title="encode_config"><code>encode_config</code></a></td><td>Returns a new <code>String</code></td><td>Always</td><td>Yes</td></tr>
+<tr><td><a href="fn.encode_config_buf.html" title="encode_config_buf"><code>encode_config_buf</code></a></td><td>Appends to provided <code>String</code></td><td>If buffer needs to grow</td><td>Yes</td></tr>
+<tr><td><a href="fn.encode_config_slice.html" title="encode_config_slice"><code>encode_config_slice</code></a></td><td>Writes to provided <code>&amp;[u8]</code></td><td>Never</td><td>No</td></tr>
+</tbody></table>
+</div><h2 id="decoding" class="section-header"><a href="#decoding">Decoding</a></h2>
+<p>Note that there are no config options (In the future one might be added to
+restrict the input character set, but it’s not clear to me that this is
+useful).</p>
+<div><table><thead><tr><th>Function</th><th>Output</th><th>Allocates</th><th>Requires <code>alloc</code> feature</th></tr></thead><tbody>
+<tr><td><a href="fn.decode.html" title="decode"><code>decode</code></a></td><td>Returns a new <code>Vec&lt;u8&gt;</code></td><td>Always</td><td>Yes</td></tr>
+<tr><td><a href="fn.decode_slice.html" title="decode_slice"><code>decode_slice</code></a></td><td>Writes to provided <code>&amp;[u8]</code></td><td>Never</td><td>No</td></tr>
+<tr><td><a href="fn.decode_buf.html" title="decode_buf"><code>decode_buf</code></a></td><td>Appends to provided <code>Vec&lt;u8&gt;</code></td><td>If buffer needs to grow</td><td>Yes</td></tr>
+</tbody></table>
+</div><h2 id="features" class="section-header"><a href="#features">Features</a></h2>
+<p>This crate has two features, both are enabled by default and exist to allow
+users in <code>no_std</code> environments to disable various portions of .</p>
+<ul>
+<li>
+<p>The <code>&quot;alloc&quot;</code> feature, which is on by default, adds a number of helpful
+functions that require use of the <a href="https://doc.rust-lang.org/alloc/index.html"><code>alloc</code></a> crate, but not the
+rest of <code>std</code>.</p>
+<ul>
+<li>This is <code>no_std</code> compatible.</li>
+<li>Each function should list whether or not it requires this feature
+under the <code>Availability</code> of its documentation.</li>
+</ul>
+</li>
+<li>
+<p>The <code>&quot;std&quot;</code> feature, which is on by default, enables the <code>&quot;alloc&quot;</code>
+feature, and additionally makes <a href="enum.DecodeError.html" title="DecodeError"><code>DecodeError</code></a> implement the
+<code>std::error::Error</code> trait.</p>
+<ul>
+<li>Frustratingly, this trait is in <code>std</code> (and not in <code>core</code> or <code>alloc</code>),
+but not implementing it would be quite annoying for some users, so
+it’s kept, even though it’s what prevents us from being <code>no_std</code>
+compatible in all configurations.</li>
+</ul>
+</li>
+</ul>
+</div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left import-item"><code>pub use <a class="enum" href="enum.EncConfig.html" title="enum base16::EncConfig">EncConfig</a>::*;</code></div><div class="item-right docblock-short"></div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.DecodeError.html" title="base16::DecodeError enum">DecodeError</a></div><div class="item-right docblock-short"><p>Represents a problem with the data we want to decode.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.EncConfig.html" title="base16::EncConfig enum">EncConfig</a></div><div class="item-right docblock-short"><p>Configuration options for encoding. Just specifies whether or not output
+should be uppercase or lowercase.</p>
+</div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.decode.html" title="base16::decode fn">decode</a></div><div class="item-right docblock-short"><p>Decode bytes from base16, and return a new <code>Vec&lt;u8&gt;</code> containing the results.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.decode_buf.html" title="base16::decode_buf fn">decode_buf</a></div><div class="item-right docblock-short"><p>Decode bytes from base16, and appends into the provided buffer. Only
+allocates if the buffer could not fit the data. Returns the number of bytes
+written.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.decode_byte.html" title="base16::decode_byte fn">decode_byte</a></div><div class="item-right docblock-short"><p>Decode a single character as hex.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.decode_slice.html" title="base16::decode_slice fn">decode_slice</a></div><div class="item-right docblock-short"><p>Decode bytes from base16, and write into the provided buffer. Never
+allocates.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.encode_byte.html" title="base16::encode_byte fn">encode_byte</a></div><div class="item-right docblock-short"><p>Encode a single character as hex, returning a tuple containing the two
+encoded bytes in big-endian order – the order the characters would be in
+when written out (e.g. the top nibble is the first item in the tuple)</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.encode_byte_l.html" title="base16::encode_byte_l fn">encode_byte_l</a></div><div class="item-right docblock-short"><p>Convenience wrapper for <code>base16::encode_byte(byte, base16::EncodeLower)</code></p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.encode_byte_u.html" title="base16::encode_byte_u fn">encode_byte_u</a></div><div class="item-right docblock-short"><p>Convenience wrapper for <code>base16::encode_byte(byte, base16::EncodeUpper)</code></p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.encode_config.html" title="base16::encode_config fn">encode_config</a></div><div class="item-right docblock-short"><p>Encode <code>input</code> into a string using the listed config. The resulting string
+contains <code>input.len() * 2</code> bytes.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.encode_config_buf.html" title="base16::encode_config_buf fn">encode_config_buf</a></div><div class="item-right docblock-short"><p>Encode <code>input</code> into the end of the provided buffer. Returns the number of
+bytes that were written.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.encode_config_slice.html" title="base16::encode_config_slice fn">encode_config_slice</a></div><div class="item-right docblock-short"><p>Write bytes as base16 into the provided output buffer. Never allocates.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.encode_lower.html" title="base16::encode_lower fn">encode_lower</a></div><div class="item-right docblock-short"><p>Encode bytes as base16, using lower case characters for nibbles between 10
+and 15 (<code>a</code> through <code>f</code>).</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.encode_upper.html" title="base16::encode_upper fn">encode_upper</a></div><div class="item-right docblock-short"><p>Encode bytes as base16, using upper case characters for nibbles between
+10 and 15 (<code>A</code> through <code>F</code>).</p>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="base16" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0-nightly (1bd4fdc94 2022-01-12)" ></div>
+</body></html>

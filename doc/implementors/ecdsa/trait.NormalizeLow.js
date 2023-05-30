@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["k256"] = [{"text":"impl <a class=\"trait\" href=\"ecdsa/trait.NormalizeLow.html\" title=\"trait ecdsa::NormalizeLow\">NormalizeLow</a> for <a class=\"struct\" href=\"k256/struct.Scalar.html\" title=\"struct k256::Scalar\">Scalar</a>","synthetic":false,"types":["k256::arithmetic::scalar::Scalar"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
