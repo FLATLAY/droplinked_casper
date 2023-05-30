@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["NamedArg","Named arguments to a contract."],["RuntimeArgs","Represents a collection of arguments passed to a smart contract."]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"trait":[["IteratorRandom","Extension trait on iterators, providing random sampling methods."],["SliceRandom","Extension trait on slices, providing random mutation and sampling methods."]]});

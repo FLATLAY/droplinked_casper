@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["ActionThresholds","Thresholds that have to be met when executing an action of a certain type."]]});
