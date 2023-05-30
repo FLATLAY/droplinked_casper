@@ -1,8 +1,12 @@
 # Droplinked contract
 
-### You can download the droplinked little contract testing environment [here](https://github.com/FLATLAY/casper_wallet)
-### Rust docs of source code could be found [here](https://htmlpreview.github.io/?https://github.com/FLATLAY/droplinked_casper/blob/main/doc/contract/index.html)
-### Contract Interface documentation could be found [here](https://flatlay.github.io/#/ContractInterface)
+## Testing Environment
+You can download the droplinked little contract testing environment [here](https://github.com/FLATLAY/casper_wallet)
+
+## Documentation
+#### Rust docs of source code could be found [here](https://flatlay.github.io/contract/)
+#### Contract Interface documentation could be found [here](https://github.com/FLATLAY/FLATLAY.github.io/blob/main/docs_interface/ContractInterface.md)
+
 ## Build and deploy
 ### Prerequisites
 You need to have [`CLI Client`](https://docs.casperlabs.io/developers/prerequisites/#the-casper-command-line-client), `rust` (1.60.0-nightly or higher), and `make` installed in your system. 
