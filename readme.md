@@ -6,6 +6,7 @@ You can download the droplinked little contract testing environment [here](https
 ## Documentation
 #### Rust docs of source code could be found [here](https://flatlay.github.io/contract/)
 #### Contract Interface documentation could be found [here](https://github.com/FLATLAY/FLATLAY.github.io/blob/main/docs_interface/ContractInterface.md)
+#### You can find the usage testing documentation [here](usageTesting.md)
 
 ## Build and deploy
 ### Prerequisites
