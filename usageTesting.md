@@ -1,5 +1,7 @@
 # Usage Testing of [droplinked](https://www.droplinked.com) contract
 
+** Note : We are about to do a major release so this document would get updated as the system is updated
+
 This repository contains the logic and code for the droplinked's contract, below is a short introduction to droplinked : 
 
 On the droplinked protocol, we are registering products on chain and to enable 3rd party publishers to leverage these registered products and sell them across any marketplace, dapp or native site in order to earn commission. We are complimenting this with headless tooling for NFT Gated store fronts on droplinked.com and other valued added NFT solutions. This particular repository contains the customized contract for the Casper Network.
