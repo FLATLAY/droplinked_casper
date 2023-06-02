@@ -11,3 +11,34 @@ On the droplinked protocol, we are registering products on chain and to enable 3
 You'll need 3 accounts to test the contract, you can name them `producer`, `publisher` and `customer` as we will use these names in this documentation.
 You should create these accounts on your `casper wallet` and faucet them on testnet, the process is as follows : 
 
+Unlock the casper wallet first 
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/c5e052f5-464c-4d49-9745-46c1012a9197)
+
+Select the settings section and hit the Create Account button there
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/7ef1cbd4-ce52-43a8-a21d-1dcdfe8dd659)
+
+Give a name to your account and hit create account
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/44145c4f-dc97-4e43-a7ab-7936db9fb5c1)
+
+You should do this for all the 3 mentioned accounts. Then you'll need to faucet your accounts on testnet, Select your account on your wallet and hit `Manage Account`
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/6cbcdb09-2e1f-4213-ae6a-00406eb45e86)
+
+Hit view on CSPR.live
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/2be0a0c2-c4fb-4b1d-80f0-3f1bd414f580)
+
+When you are on casper testnet, hit the connect button on your account
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/298bf314-7f9d-48b1-bd05-a1bebc00e835)
+
+Then, from the tools menu, hit the faucet button, 
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/d7f8ddef-19c4-4fa7-b362-cce736b4f9c3)
+
+Fill in the captcha, and hit the `Request Tokens` button, It would take up to 2 minutes to give you 2000 CSPRs. Do as so for other 2 accounts, So at the end you would have 3 accounts with 2000 CSPRs in each of them.
+
+### 2. Create an account on droplinked
