@@ -44,7 +44,7 @@ Then, from the tools menu, hit the faucet button,
 Fill in the captcha, and hit the `Request Tokens` button, It would take up to 2 minutes to give you 2000 CSPRs. Do as so for other 2 accounts, So at the end you would have 3 accounts with 2000 CSPRs in each of them.
 
 ___
-### 2. Create an account on droplinked
+### 2. Create an account on droplinked & Record your Product
 
 Move to https://ngsf.flatlay.io/, Enter your username and hit the sign up button
 
@@ -86,4 +86,47 @@ You would be transferred to the `Products` page of droplinked.
 
 ![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/1c226eef-2a34-41c7-9877-408a46218f28)
 
+Hit the `New Product` Button to create a new product. Fill in the needed information as I do : 
 
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/38b1844a-aa74-4dbf-9f68-3c27300a8778)
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/acb00757-f078-444f-8928-a6d3a4f15070)
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/af157e44-f08d-4e34-a10c-4de1a43400d5)
+
+Add variants to your prodcut and hit save on each of them 
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/8c9d92c1-b145-4aa5-9e4b-f3cb2fb424f1)
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/dc4aec5d-373a-40b5-afd2-a9e9d447f465)
+
+And push the `Publish` button to create your product. 
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/cd95ec4c-2183-4844-a463-679b62db7e50)
+
+From the above page, select edit product (on the right hand of the product) 
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/3bc55382-bad1-4e66-9639-71b743f2a088)
+
+Open up your wallet, move to `Producer` account, and hit `Connect` button to connect to droplinked, And then
+In the product variants section, click on the green icon (Record product)
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/0a546635-cb1a-4d01-8d5a-f2c337dc0035)
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/58cc52a9-f940-4e9f-82ce-b5b3521f1256)
+
+Choose the BlockchainNetwork to casper, and enter a comisson (between 1 and 100) and hit the `Drop` button 
+
+your wallet would be opened and ask you to sign a text, click on `sign`
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/91269eb3-cfe9-4a1e-8862-07a64f1f0923)
+
+Then another wallet pop up would be open to ask you verify the deploy, hit sign on that too
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/e13d0a69-eaf2-44f8-80aa-dc76add3a8c3)
+
+A popup window would open to you which shows you the deploy hash and the link to testnet, click on it, you would go to the deployment page on testnet, and after a minute or two, the deploy would execute succssfully 
+
+The deploy hash that was shown in this example was : https://testnet.cspr.live/deploy/004ba727d6175c274eff53177998579b0c35c35cab848f01a11c12b035ba6ef1
+
+![image](https://github.com/FLATLAY/droplinked_casper/assets/20683538/16718e0d-f950-4173-9676-cf4cd539f324)
